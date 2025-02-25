@@ -18,48 +18,71 @@
             padding: 20px;
             border-radius: 10px;
             background-color: #f9f9f9;
+            text-align: left;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .userMessage {
+            color: blue;
+            font-weight: bold;
+        }
+        .botMessage {
+            color: green;
+            font-weight: bold;
         }
         #messageInput {
-            width: 80%;
+            width: 70%;
             padding: 10px;
         }
         #submitButton {
             padding: 10px 15px;
             cursor: pointer;
         }
-        #TalkbotResponse {
-            margin-top: 20px;
-            font-weight: bold;
-        }
     </style>
 </head>
 <body>
     <h1>AI Chatbot</h1>
     <div id="chatContainer">
-        <input type="text" id="messageInput" placeholder="Ask me anything...">
-        <button id="submitButton">Send</button>
-        <p id="TalkbotResponse"></p>
+        <div id="chatHistory"></div> <!-- Chat history appears here -->
     </div>
+    <input type="text" id="messageInput" placeholder="Ask me anything...">
+    <button id="submitButton">Send</button>
 
     <script>
         document.getElementById('submitButton').addEventListener('click', function() {
             let userMessage = document.getElementById('messageInput').value;
+            let chatHistory = document.getElementById('chatHistory');
 
             if (userMessage.trim() === '') {
-                document.getElementById('TalkbotResponse').innerHTML = "Please enter a message!";
                 return;
             }
 
-            document.getElementById('TalkbotResponse').innerHTML = "Thinking...";
+            // Append user's message
+            chatHistory.innerHTML += `<p class="userMessage">You: ${userMessage}</p>`;
 
+            // Show bot is thinking
+            chatHistory.innerHTML += `<p class="botMessage">Thinking...</p>`;
+
+            // Scroll to latest message
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+
+            // Call AI
             puter.ai.chat(userMessage)
                 .then(response => {
-                    document.getElementById('TalkbotResponse').innerHTML = response;
+                    // Remove "Thinking..." message
+                    chatHistory.lastChild.remove();
+
+                    // Append bot response
+                    chatHistory.innerHTML += `<p class="botMessage">Bot: ${response}</p>`;
+
+                    // Scroll down automatically
+                    chatHistory.scrollTop = chatHistory.scrollHeight;
                 })
                 .catch(error => {
-                    document.getElementById('TalkbotResponse').innerHTML = "Error: " + error.message;
+                    chatHistory.innerHTML += `<p class="botMessage">Error: ${error.message}</p>`;
                 });
 
+            // Clear input field
             document.getElementById('messageInput').value = '';
         });
     </script>
