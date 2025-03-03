@@ -1,69 +1,105 @@
-class Game {
-    constructor() {
-        this.chicken = 0;
-        this.clickValue = 1;
-        this.autoClickers = 0;
-        this.autoClickValue = 0.1;
-        this.prestigeMultiplier = 1;
-        this.rebirthMultiplier = 1;
-        this.prestiges = 0;
-        this.rebirths = 0;
-    }
-
-    click() {
-        this.chicken += this.clickValue * this.prestigeMultiplier * this.rebirthMultiplier;
-        this.updateUI();
-    }
-
-    buyAutoClicker() {
-        let cost = Math.floor(10 * Math.pow(1.15, this.autoClickers));
-        if (this.chicken >= cost) {
-            this.chicken -= cost;
-            this.autoClickers++;
-            this.updateUI();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Endless Chicken Clicker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
         }
-    }
-
-    prestige() {
-        if (this.chicken >= 1000) {
-            this.prestiges++;
-            this.prestigeMultiplier *= 1 + this.prestiges * 0.1;
-            this.chicken = 0;
-            this.autoClickers = 0;
-            this.updateUI();
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
         }
-    }
-
-    rebirth() {
-        if (this.prestiges >= 10) {
-            this.rebirths++;
-            this.rebirthMultiplier *= 1 + this.rebirths * 0.2;
-            this.prestiges = 0;
-            this.prestigeMultiplier = 1;
-            this.chicken = 0;
-            this.autoClickers = 0;
-            this.updateUI();
+    </style>
+</head>
+<body>
+    <h1>Endless Chicken Clicker</h1>
+    <p id="chickenCount">Chicken: 0</p>
+    <p id="clickValue">Click Value: 1</p>
+    <p id="autoClickers">Auto Clickers: 0</p>
+    <p id="prestiges">Prestiges: 0</p>
+    <p id="rebirths">Rebirths: 0</p>
+    
+    <button id="clickButton">Click for Chicken</button>
+    <button id="buyAutoClicker">Buy Auto Clicker</button>
+    <button id="prestige">Prestige</button>
+    <button id="rebirth">Rebirth</button>
+    
+    <script>
+        class Game {
+            constructor() {
+                this.chicken = 0;
+                this.clickValue = 1;
+                this.autoClickers = 0;
+                this.autoClickValue = 0.1;
+                this.prestigeMultiplier = 1;
+                this.rebirthMultiplier = 1;
+                this.prestiges = 0;
+                this.rebirths = 0;
+            }
+    
+            click() {
+                this.chicken += this.clickValue * this.prestigeMultiplier * this.rebirthMultiplier;
+                this.updateUI();
+            }
+    
+            buyAutoClicker() {
+                let cost = Math.floor(10 * Math.pow(1.15, this.autoClickers));
+                if (this.chicken >= cost) {
+                    this.chicken -= cost;
+                    this.autoClickers++;
+                    this.updateUI();
+                }
+            }
+    
+            prestige() {
+                if (this.chicken >= 1000) {
+                    this.prestiges++;
+                    this.prestigeMultiplier *= 1 + this.prestiges * 0.1;
+                    this.chicken = 0;
+                    this.autoClickers = 0;
+                    this.updateUI();
+                }
+            }
+    
+            rebirth() {
+                if (this.prestiges >= 10) {
+                    this.rebirths++;
+                    this.rebirthMultiplier *= 1 + this.rebirths * 0.2;
+                    this.prestiges = 0;
+                    this.prestigeMultiplier = 1;
+                    this.chicken = 0;
+                    this.autoClickers = 0;
+                    this.updateUI();
+                }
+            }
+    
+            autoGenerate() {
+                this.chicken += this.autoClickers * this.autoClickValue * this.prestigeMultiplier * this.rebirthMultiplier;
+                this.updateUI();
+            }
+    
+            updateUI() {
+                document.getElementById("chickenCount").innerText = `Chicken: ${Math.floor(this.chicken)}`;
+                document.getElementById("clickValue").innerText = `Click Value: ${this.clickValue * this.prestigeMultiplier * this.rebirthMultiplier}`;
+                document.getElementById("autoClickers").innerText = `Auto Clickers: ${this.autoClickers}`;
+                document.getElementById("prestiges").innerText = `Prestiges: ${this.prestiges}`;
+                document.getElementById("rebirths").innerText = `Rebirths: ${this.rebirths}`;
+            }
         }
-    }
-
-    autoGenerate() {
-        this.chicken += this.autoClickers * this.autoClickValue * this.prestigeMultiplier * this.rebirthMultiplier;
-        this.updateUI();
-    }
-
-    updateUI() {
-        document.getElementById("chickenCount").innerText = `Chicken: ${Math.floor(this.chicken)}`;
-        document.getElementById("clickValue").innerText = `Click Value: ${this.clickValue * this.prestigeMultiplier * this.rebirthMultiplier}`;
-        document.getElementById("autoClickers").innerText = `Auto Clickers: ${this.autoClickers}`;
-        document.getElementById("prestiges").innerText = `Prestiges: ${this.prestiges}`;
-        document.getElementById("rebirths").innerText = `Rebirths: ${this.rebirths}`;
-    }
-}
-
-const game = new Game();
-setInterval(() => game.autoGenerate(), 1000);
-
-document.getElementById("clickButton").addEventListener("click", () => game.click());
-document.getElementById("buyAutoClicker").addEventListener("click", () => game.buyAutoClicker());
-document.getElementById("prestige").addEventListener("click", () => game.prestige());
-document.getElementById("rebirth").addEventListener("click", () => game.rebirth());
+    
+        const game = new Game();
+        setInterval(() => game.autoGenerate(), 1000);
+    
+        document.getElementById("clickButton").addEventListener("click", () => game.click());
+        document.getElementById("buyAutoClicker").addEventListener("click", () => game.buyAutoClicker());
+        document.getElementById("prestige").addEventListener("click", () => game.prestige());
+        document.getElementById("rebirth").addEventListener("click", () => game.rebirth());
+    </script>
+</body>
+</html>
