@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Chatbot with Context</title>
+  <script src="https://js.puter.com/v2/"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 50px;
+    }
+    #chatContainer {
+      width: 60%;
+      margin: auto;
+      border: 2px solid black;
+      padding: 20px;
+      border-radius: 10px;
+      background-color: #f9f9f9;
+      text-align: left;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .userMessage {
+      color: blue;
+      font-weight: bold;
+    }
+    .botMessage {
+      color: green;
+      font-weight: bold;
+    }
+    #messageInput {
+      width: 70%;
+      padding: 10px;
+    }
+    #submitButton, #clearButton {
+      padding: 10px 15px;
+      cursor: pointer;
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>AI Chatbot with Context</h1>
+  <div id="chatContainer">
+    <div id="chatHistory"></div> <!-- Chat history appears here -->
+  </div>
+  <input type="text" id="messageInput" placeholder="Ask me anything..." />
+  <button id="submitButton">Send</button>
+  <button id="clearButton">Clear Chat</button>
+
+  <script>
+    const chatHistory = document.getElementById('chatHistory');
+    const messageInput = document.getElementById('messageInput');
+    const submitButton = document.getElementById('submitButton');
+    const clearButton = document.getElementById('clearButton');
+
+    // This variable will hold the conversation context (persisted in localStorage)
+    let conversationContext = localStorage.getItem('chatContext') || "";
+
+    // Load chat history from localStorage (UI) 
+    function loadChatHistory() {
+      const storedChat = localStorage.getItem('chatHistory');
+      if (storedChat) {
+        chatHistory.innerHTML = storedChat;
+        chatHistory.scrollTop = chatHistory.scrollHeight; // Auto-scroll to latest message
+      }
+    }
+
+    // Save chat history (UI) to localStorage
+    function saveChatHistory() {
+      localStorage.setItem('chatHistory', chatHistory.innerHTML);
+    }
+
+    // Save conversation context (for AI prompt) to localStorage
+    function saveConversationContext() {
+      localStorage.setItem('chatContext', conversationContext);
+    }
+
+    // Append message to chat UI and update conversation context
+    function appendMessage(sender, message) {
+      const messageHTML = `<p class="${sender === 'You' ? 'userMessage' : 'botMessage'}">${sender}: ${message}</p>`;
+      chatHistory.innerHTML += messageHTML;
+      conversationContext += `${sender}: ${message}\n`;
+      saveChatHistory();
+      saveConversationContext();
+      chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
+
+    // When the page loads, load the chat history UI
+    loadChatHistory();
+
+    // Send message function
+    submitButton.addEventListener('click', function() {
+      const userMessage = messageInput.value.trim();
+      if (userMessage === '') return;
+
+      // Append user's message to UI and conversation context
+      appendMessage('You', userMessage);
+
+      // Show bot is thinking (temporary placeholder)
+      chatHistory.innerHTML += `<p class="botMessage">Bot: Thinking...</p>`;
+      chatHistory.scrollTop = chatHistory.scrollHeight;
+
+      // Create a prompt that includes conversation context and the new user message
+      const prompt = conversationContext + "You: " + userMessage;
+
+      // Call AI with the conversation context as prompt
+      puter.ai.chat(prompt)
+        .then(response => {
+          // Remove "Thinking..." message
+          const lastMsg = chatHistory.lastChild;
+          if (lastMsg && lastMsg.textContent.includes("Thinking...")) {
+            lastMsg.remove();
+          }
+          // Append bot's response
+          appendMessage('Bot', response);
+        })
+        .catch(error => {
+          // Remove "Thinking..." message
+          const lastMsg = chatHistory.lastChild;
+          if (lastMsg && lastMsg.textContent.includes("Thinking...")) {
+            lastMsg.remove();
+          }
+          appendMessage('Bot', "Error: " + error.message);
+        });
+
+      // Clear the input field
+      messageInput.value = '';
+    });
+
+    // Clear chat history and conversation context
+    clearButton.addEventListener('click', function() {
+      chatHistory.innerHTML = '';
+      conversationContext = '';
+      localStorage.removeItem('chatHistory');
+      localStorage.removeItem('chatContext');
+    });
+  </script>
+</body>
+</html>
