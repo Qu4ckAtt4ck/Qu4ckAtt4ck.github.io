@@ -15,6 +15,12 @@
             margin: 10px;
             font-size: 16px;
         }
+        #clickImage {
+            display: block;
+            margin: 20px auto;
+            width: 100px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -28,9 +34,12 @@
     <p id="prestigeRequirement">Prestige Requirement: 1000 Chicken</p>
     <p id="rebirthRequirement">Rebirth Requirement: 10 Prestiges</p>
     <p id="offlineEarnings">Offline Earnings Multiplier: 1x</p>
+    <p id="clickUpgradeCost">Click Upgrade Cost: 50</p>
     
-    <button id="clickButton">Click for Chicken</button>
+    <img id="clickImage" src="your-image-url-here" alt="Click for Chicken">
+    
     <button id="buyAutoClicker">Buy Auto Clicker</button>
+    <button id="buyClickUpgrade">Upgrade Click Power</button>
     <button id="prestige">Prestige</button>
     <button id="rebirth">Rebirth</button>
     
@@ -46,6 +55,8 @@
                 this.prestiges = 0;
                 this.rebirths = 0;
                 this.offlineMultiplier = 1;
+                this.clickUpgradeLevel = 0;
+                this.clickUpgradeCost = 50;
                 this.lastUpdate = Date.now();
                 this.loadGame();
             }
@@ -61,6 +72,17 @@
                 if (this.chicken >= cost) {
                     this.chicken -= cost;
                     this.autoClickers++;
+                    this.updateUI();
+                    this.saveGame();
+                }
+            }
+    
+            buyClickUpgrade() {
+                if (this.chicken >= this.clickUpgradeCost) {
+                    this.chicken -= this.clickUpgradeCost;
+                    this.clickValue *= 2;
+                    this.clickUpgradeLevel++;
+                    this.clickUpgradeCost *= 2;
                     this.updateUI();
                     this.saveGame();
                 }
@@ -107,33 +129,17 @@
                 document.getElementById("prestigeRequirement").innerText = `Prestige Requirement: 1000 Chicken`;
                 document.getElementById("rebirthRequirement").innerText = `Rebirth Requirement: 10 Prestiges`;
                 document.getElementById("offlineEarnings").innerText = `Offline Earnings Multiplier: ${this.offlineMultiplier.toFixed(1)}x`;
+                document.getElementById("clickUpgradeCost").innerText = `Click Upgrade Cost: ${this.clickUpgradeCost}`;
             }
     
             saveGame() {
-                localStorage.setItem('chickenClicker', JSON.stringify({
-                    chicken: this.chicken,
-                    autoClickers: this.autoClickers,
-                    prestiges: this.prestiges,
-                    rebirths: this.rebirths,
-                    prestigeMultiplier: this.prestigeMultiplier,
-                    rebirthMultiplier: this.rebirthMultiplier,
-                    offlineMultiplier: this.offlineMultiplier,
-                    lastUpdate: Date.now()
-                }));
+                localStorage.setItem('chickenClicker', JSON.stringify(this));
             }
     
             loadGame() {
                 let savedGame = JSON.parse(localStorage.getItem('chickenClicker'));
                 if (savedGame) {
-                    this.chicken = savedGame.chicken;
-                    this.autoClickers = savedGame.autoClickers;
-                    this.prestiges = savedGame.prestiges;
-                    this.rebirths = savedGame.rebirths;
-                    this.prestigeMultiplier = savedGame.prestigeMultiplier;
-                    this.rebirthMultiplier = savedGame.rebirthMultiplier;
-                    this.offlineMultiplier = savedGame.offlineMultiplier;
-                    this.lastUpdate = savedGame.lastUpdate;
-                    
+                    Object.assign(this, savedGame);
                     let timeElapsed = (Date.now() - this.lastUpdate) / 1000;
                     this.chicken += timeElapsed * this.autoClickers * this.autoClickValue * this.prestigeMultiplier * this.rebirthMultiplier * this.offlineMultiplier;
                     this.updateUI();
@@ -144,8 +150,9 @@
         const game = new Game();
         setInterval(() => game.autoGenerate(), 1000);
     
-        document.getElementById("clickButton").addEventListener("click", () => game.click());
+        document.getElementById("clickImage").addEventListener("click", () => game.click());
         document.getElementById("buyAutoClicker").addEventListener("click", () => game.buyAutoClicker());
+        document.getElementById("buyClickUpgrade").addEventListener("click", () => game.buyClickUpgrade());
         document.getElementById("prestige").addEventListener("click", () => game.prestige());
         document.getElementById("rebirth").addEventListener("click", () => game.rebirth());
     </script>
