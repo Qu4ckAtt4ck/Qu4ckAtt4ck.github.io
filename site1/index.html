@@ -91,6 +91,8 @@
                 this.offlineMultiplier = 1;
                 this.clickUpgradeLevel = 0;
                 this.clickUpgradeCost = 50;
+                this.prestigeCost = 1000; // Starting cost for prestige
+                this.rebirthCost = 10; // Starting cost for rebirth
                 this.lastUpdate = Date.now();
                 this.loadGame();
             }
@@ -130,24 +132,26 @@
             }
     
             prestige() {
-                if (this.chicken >= 1000) {
+                if (this.chicken >= this.prestigeCost) {
                     this.prestiges++;
                     this.prestigeMultiplier *= 1.1 + (this.prestiges * 0.05);
                     this.chicken = 0;
                     this.autoClickers = 0;
+                    this.prestigeCost = Math.floor(this.prestigeCost * 1.5); // Scale cost for next prestige
                     this.updateUI();
                     this.saveGame();
                 }
             }
     
             rebirth() {
-                if (this.prestiges >= 10) {
+                if (this.prestiges >= this.rebirthCost) {
                     this.rebirths++;
                     this.rebirthMultiplier *= 1.2 + (this.rebirths * 0.1);
                     this.prestiges = 0;
                     this.prestigeMultiplier = 1;
                     this.chicken = 0;
                     this.autoClickers = 0;
+                    this.rebirthCost = Math.floor(this.rebirthCost * 1.5); // Scale cost for next rebirth
                     this.updateUI();
                     this.saveGame();
                 }
@@ -167,8 +171,8 @@
                 document.getElementById("prestiges").innerText = `Prestiges: ${this.prestiges}`;
                 document.getElementById("rebirths").innerText = `Rebirths: ${this.rebirths}`;
                 document.getElementById("autoClickerCost").innerText = `Auto Clicker Cost: ${autoClickerCost}`;
-                document.getElementById("prestigeRequirement").innerText = `Prestige Requirement: 1000 Chicken`;
-                document.getElementById("rebirthRequirement").innerText = `Rebirth Requirement: 10 Prestiges`;
+                document.getElementById("prestigeRequirement").innerText = `Prestige Requirement: ${this.prestigeCost} Chicken`;
+                document.getElementById("rebirthRequirement").innerText = `Rebirth Requirement: ${this.rebirthCost} Prestiges`;
                 document.getElementById("offlineEarnings").innerText = `Offline Earnings Multiplier: ${this.offlineMultiplier.toFixed(1)}x`;
                 document.getElementById("clickUpgradeCost").innerText = `Click Upgrade Cost: ${this.clickUpgradeCost}`;
             }
