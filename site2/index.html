@@ -10,34 +10,55 @@
       font-family: Arial, sans-serif;
       text-align: center;
       margin: 50px;
+      background-color: #121212;
+      color: #ffffff;
     }
     #chatContainer {
       width: 60%;
       margin: auto;
-      border: 2px solid black;
+      border: 2px solid #444;
       padding: 20px;
-      border-radius: 10px;
-      background-color: #f9f9f9;
+      border-radius: 15px;
+      background-color: #1e1e1e;
       text-align: left;
       max-height: 400px;
       overflow-y: auto;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
     }
     .userMessage {
-      color: blue;
+      color: #1e90ff;
       font-weight: bold;
     }
     .botMessage {
-      color: green;
+      color: #32cd32;
       font-weight: bold;
     }
     #messageInput {
       width: 70%;
       padding: 10px;
+      border-radius: 15px;
+      border: 1px solid #444;
+      background-color: #333;
+      color: #fff;
     }
     #submitButton, #clearButton {
       padding: 10px 15px;
       cursor: pointer;
       margin: 5px;
+      border-radius: 15px;
+      border: none;
+      background-color: #444;
+      color: white;
+      font-weight: bold;
+    }
+    #submitButton:hover, #clearButton:hover {
+      background-color: #555;
+    }
+    #submitButton:active, #clearButton:active {
+      background-color: #666;
+    }
+    h1 {
+      color: #ff6347;
     }
   </style>
 </head>
