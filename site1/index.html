@@ -1,39 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Placeable Uncooked Chicken Clicker</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1-crypto-js.js"></script>
-  <script src="game.js"></script>
-  <script src="encryption.js"></script>
-  <script src="settings.js"></script>
-  <script src="cosmetics.js"></script>
-  <script src="main.js"></script>
-  <style>
-    /* Add necessary styles here */
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Endless Clicker</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
-  <h2>Encrypted Save System with Cosmetics</h2>
-
-  <!-- Settings Menu (Hidden by default) -->
-  <div id="settingsMenu" class="settings-menu" style="display:none;">
-    <h3>Save and Load Game</h3>
-    <button id="saveGameButton">Save Game</button><br>
-    <input type="file" id="fileInput" accept=".txt">
-    <button onclick="closeSettingsMenu()">Close</button>
-  </div>
-
-  <!-- Cosmetics Menu (Hidden by default) -->
-  <div id="cosmeticsMenu" class="cosmetics-menu">
-    <h3>Your Cosmetics</h3>
-    <!-- Dynamically loaded cosmetics will appear here -->
-  </div>
-
-  <!-- Button to open settings menu -->
-  <button onclick="openSettingsMenu()">Open Settings</button>
-
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+    </div>
+    
+    <!-- Top-right UI Buttons -->
+    <div id="top-right-buttons">
+        <button id="settings-button">⚙️</button>
+        <button id="cosmetics-button">🛒</button>
+    </div>
+    
+    <!-- Settings Menu -->
+    <div id="settings-menu" class="popup">
+        <button class="close-button">X</button>
+        <h2>Settings</h2>
+        <button id="save-game">Save Game</button>
+        <button id="import-save">Import Save</button>
+        <input type="file" id="file-input" style="display: none;">
+    </div>
+    
+    <!-- Cosmetics Menu -->
+    <div id="cosmetics-menu" class="popup">
+        <button class="close-button">X</button>
+        <h2>Cosmetic Shop</h2>
+        <div id="inventory"></div>
+    </div>
+    
+    <script src="game.js"></script>
+    <script src="settings.js"></script>
+    <script src="cosmetics.js"></script>
 </body>
 </html>
