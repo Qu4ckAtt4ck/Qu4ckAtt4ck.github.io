@@ -1,29 +1,40 @@
-// game.js
-
-let gameData = {
-  playerName: "Player1",
-  level: 5,
-  score: 1200,
-  cosmetics: [] // Track purchased cosmetics
-};
-
-// This function initializes the game with the default values.
-function initializeGame() {
-  loadGame();
+class ClickerGame {
+    constructor() {
+        this.score = 0;
+        this.rebirths = 0;
+        this.prestiges = 0;
+    }
+    
+    click() {
+        this.score++;
+        this.updateUI();
+    }
+    
+    rebirth() {
+        let cost = Math.pow(10, this.rebirths + 1);
+        if (this.score >= cost) {
+            this.score = 0;
+            this.rebirths++;
+            this.updateUI();
+        }
+    }
+    
+    prestige() {
+        let cost = Math.pow(10, this.prestiges + 1);
+        if (this.rebirths >= cost) {
+            this.rebirths = 0;
+            this.prestiges++;
+            this.updateUI();
+        }
+    }
+    
+    updateUI() {
+        document.getElementById('score').innerText = this.score;
+        document.getElementById('rebirths').innerText = this.rebirths;
+        document.getElementById('prestiges').innerText = this.prestiges;
+    }
 }
 
-// Example of loading the game
-function loadGame() {
-  // This would normally retrieve data from a server or local storage
-  console.log("Loading game...", gameData);
-}
+const game = new ClickerGame();
 
-// A function to simulate the player gaining score or leveling up
-function updateGameData(newLevel, newScore) {
-  gameData.level = newLevel;
-  gameData.score = newScore;
-  console.log("Game Data Updated: ", gameData);
-}
-
-// Call the initializeGame function on page load
-initializeGame();
+document.getElementById('click-btn').addEventListener('click', () => game.click());
