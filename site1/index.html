@@ -3,40 +3,212 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Endless Clicker</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Endless Chicken Clicker</title>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4685900264494987" 
+        crossorigin="anonymous"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+            background-color: #2f2f2f;
+            color: white;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #clickImage {
+            display: block;
+            margin: 20px auto;
+            width: 100px;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+        #clickImage.clicked {
+            transform: scale(1.1); /* Slightly enlarge the image */
+        }
+        .stat {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        .ad-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #333;
+            text-align: center;
+            padding: 10px;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
+        }
+    </style>
 </head>
 <body>
-    <div id="game-container">
-        <canvas id="gameCanvas"></canvas>
+    <h1>Endless Chicken Clicker</h1>
+    <p id="chickenCount" class="stat">Chicken: 0</p>
+    <p id="clickValue" class="stat">Click Value: 1</p>
+    <p id="autoClickers" class="stat">Auto Clickers: 0</p>
+    <p id="prestiges" class="stat">Prestiges: 0</p>
+    <p id="rebirths" class="stat">Rebirths: 0</p>
+    <p id="autoClickerCost" class="stat">Auto Clicker Cost: 10</p>
+    <p id="prestigeRequirement" class="stat">Prestige Requirement: 1000 Chicken</p>
+    <p id="rebirthRequirement" class="stat">Rebirth Requirement: 10 Prestiges</p>
+    <p id="offlineEarnings" class="stat">Offline Earnings Multiplier: 1x</p>
+    <p id="clickUpgradeCost" class="stat">Click Upgrade Cost: 50</p>
+
+    <img id="clickImage" src="chicken.png" alt="Click for Chicken">
+
+    <button id="buyAutoClicker">Buy Auto Clicker</button>
+    <button id="buyClickUpgrade">Upgrade Click Power</button>
+    <button id="prestige">Prestige</button>
+    <button id="rebirth">Rebirth</button>
+
+    <!-- Google AdSense Banner at the Bottom -->
+    <div class="ad-container">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-4685900264494987"
+             data-ad-slot="9865740555"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>
+             (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
     </div>
+
+    <script>
+        class Game {
+            constructor() {
+                this.chicken = 0;
+                this.clickValue = 1;
+                this.autoClickers = 0;
+                this.autoClickValue = 0.1;
+                this.prestigeMultiplier = 1;
+                this.rebirthMultiplier = 1;
+                this.prestiges = 0;
+                this.rebirths = 0;
+                this.offlineMultiplier = 1;
+                this.clickUpgradeLevel = 0;
+                this.clickUpgradeCost = 50;
+                this.prestigeCost = 1000; // Starting cost for prestige
+                this.rebirthCost = 10; // Starting cost for rebirth
+                this.lastUpdate = Date.now();
+                this.loadGame();
+            }
     
-    <!-- Top-right UI Buttons -->
-    <div id="top-right-buttons">
-        <button id="settings-button">⚙️</button>
-        <button id="cosmetics-button">🛒</button>
-    </div>
+            click() {
+                this.chicken += this.clickValue * this.prestigeMultiplier * this.rebirthMultiplier;
+                this.updateUI();
+                this.saveGame();
+                
+                // Add the animation on click
+                const clickImage = document.getElementById("clickImage");
+                clickImage.classList.add("clicked");
+                setTimeout(() => {
+                    clickImage.classList.remove("clicked");
+                }, 100); // Remove animation after 100ms
+            }
     
-    <!-- Settings Menu -->
-    <div id="settings-menu" class="popup">
-        <button class="close-button" id="close-settings">X</button>
-        <h2>Settings</h2>
-        <button id="save-game">Save Game</button>
-        <button id="import-save">Import Save</button>
-        <input type="file" id="file-input" style="display: none;">
-    </div>
+            buyAutoClicker() {
+                let cost = Math.floor(10 * Math.pow(1.15, this.autoClickers));
+                if (this.chicken >= cost) {
+                    this.chicken -= cost;
+                    this.autoClickers++;
+                    this.updateUI();
+                    this.saveGame();
+                }
+            }
     
-    <!-- Cosmetics Menu -->
-    <div id="cosmetics-menu" class="popup">
-        <button class="close-button" id="close-cosmetics">X</button>
-        <h2>Cosmetic Shop</h2>
-        <div id="inventory"></div>
-    </div>
+            buyClickUpgrade() {
+                if (this.chicken >= this.clickUpgradeCost) {
+                    this.chicken -= this.clickUpgradeCost;
+                    this.clickValue *= 2;
+                    this.clickUpgradeLevel++;
+                    this.clickUpgradeCost *= 2;
+                    this.updateUI();
+                    this.saveGame();
+                }
+            }
     
-    <script src="game.js"></script>
-    <script src="settings.js"></script>
-    <script src="cosmetics.js"></script>
-    <script src="encryption.js"></script>
-    <script src="save.js"></script>
+            prestige() {
+                if (this.chicken >= this.prestigeCost) {
+                    this.prestiges++;
+                    this.prestigeMultiplier *= 1.1 + (this.prestiges * 0.05);
+                    this.chicken = 0;
+                    this.autoClickers = 0;
+                    this.prestigeCost = Math.floor(this.prestigeCost * 1.5); // Scale cost for next prestige
+                    this.updateUI();
+                    this.saveGame();
+                }
+            }
+    
+            rebirth() {
+                if (this.prestiges >= this.rebirthCost) {
+                    this.rebirths++;
+                    this.rebirthMultiplier *= 1.2 + (this.rebirths * 0.1);
+                    this.prestiges = 0;
+                    this.prestigeMultiplier = 1;
+                    this.chicken = 0;
+                    this.autoClickers = 0;
+                    this.rebirthCost = Math.floor(this.rebirthCost * 1.5); // Scale cost for next rebirth
+                    this.updateUI();
+                    this.saveGame();
+                }
+            }
+    
+            autoGenerate() {
+                this.chicken += this.autoClickers * this.autoClickValue * this.prestigeMultiplier * this.rebirthMultiplier;
+                this.updateUI();
+                this.saveGame();
+            }
+    
+            updateUI() {
+                let autoClickerCost = Math.floor(10 * Math.pow(1.15, this.autoClickers));
+                document.getElementById("chickenCount").innerText = `Chicken: ${Math.floor(this.chicken)}`;
+                document.getElementById("clickValue").innerText = `Click Value: ${this.clickValue * this.prestigeMultiplier * this.rebirthMultiplier}`;
+                document.getElementById("autoClickers").innerText = `Auto Clickers: ${this.autoClickers}`;
+                document.getElementById("prestiges").innerText = `Prestiges: ${this.prestiges}`;
+                document.getElementById("rebirths").innerText = `Rebirths: ${this.rebirths}`;
+                document.getElementById("autoClickerCost").innerText = `Auto Clicker Cost: ${autoClickerCost}`;
+                document.getElementById("prestigeRequirement").innerText = `Prestige Requirement: ${this.prestigeCost} Chicken`;
+                document.getElementById("rebirthRequirement").innerText = `Rebirth Requirement: ${this.rebirthCost} Prestiges`;
+                document.getElementById("offlineEarnings").innerText = `Offline Earnings Multiplier: ${this.offlineMultiplier.toFixed(1)}x`;
+                document.getElementById("clickUpgradeCost").innerText = `Click Upgrade Cost: ${this.clickUpgradeCost}`;
+            }
+    
+            saveGame() {
+                localStorage.setItem('chickenClicker', JSON.stringify(this));
+            }
+    
+            loadGame() {
+                let savedGame = JSON.parse(localStorage.getItem('chickenClicker'));
+                if (savedGame) {
+                    Object.assign(this, savedGame);
+                    let timeElapsed = (Date.now() - this.lastUpdate) / 1000;
+                    this.chicken += timeElapsed * this.autoClickers * this.autoClickValue * this.prestigeMultiplier * this.rebirthMultiplier * this.offlineMultiplier;
+                    this.updateUI();
+                }
+            }
+        }
+    
+        const game = new Game();
+        setInterval(() => game.autoGenerate(), 1000);
+    
+        document.getElementById("clickImage").addEventListener("click", () => game.click());
+        document.getElementById("buyAutoClicker").addEventListener("click", () => game.buyAutoClicker());
+        document.getElementById("buyClickUpgrade").addEventListener("click", () => game.buyClickUpgrade());
+        document.getElementById("prestige").addEventListener("click", () => game.prestige());
+        document.getElementById("rebirth").addEventListener("click", () => game.rebirth());
+    </script>
 </body>
 </html>
