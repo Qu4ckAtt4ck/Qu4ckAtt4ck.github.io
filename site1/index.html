@@ -3,86 +3,69 @@
 <head>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4685900264494987" 
         crossorigin="anonymous"></script>
+</head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Endless Chicken Clicker</title>
     <style>
-        /* Dark Mode */
         body {
-            background-color: #121212;
-            color: white;
             font-family: Arial, sans-serif;
             text-align: center;
             margin: 50px;
         }
-        
-        /* Button Styles */
         button {
-            padding: 12px 24px;
+            padding: 10px 20px;
             margin: 10px;
             font-size: 16px;
-            background-color: #007bff;
+            cursor: pointer;
+            background-color: #4CAF50;
             color: white;
             border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
+            border-radius: 5px;
         }
-
         button:hover {
-            background-color: #0056b3;
+            background-color: #45a049;
         }
-
-        /* Button for Disabled */
-        button:disabled {
-            background-color: #6c757d;
-            cursor: not-allowed;
-        }
-
-        /* Image */
         #clickImage {
             display: block;
             margin: 20px auto;
             width: 100px;
             cursor: pointer;
+            transition: transform 0.1s ease;
         }
-
-        /* Ad Banner */
-        .ads-banner {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: #121212;
-            text-align: center;
-            padding: 10px;
-            box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
+        #clickImage.clicked {
+            transform: scale(1.1); /* Slightly enlarge the image */
+        }
+        .stat {
+            font-size: 18px;
+            margin: 10px 0;
         }
     </style>
 </head>
 <body>
     <h1>Endless Chicken Clicker</h1>
-    <p id="chickenCount">Chicken: 0</p>
-    <p id="clickValue">Click Value: 1</p>
-    <p id="autoClickers">Auto Clickers: 0</p>
-    <p id="prestiges">Prestiges: 0</p>
-    <p id="rebirths">Rebirths: 0</p>
-    <p id="autoClickerCost">Auto Clicker Cost: 10</p>
-    <p id="prestigeRequirement">Prestige Requirement: 1000 Chicken</p>
-    <p id="rebirthRequirement">Rebirth Requirement: 10 Prestiges</p>
-    <p id="offlineEarnings">Offline Earnings Multiplier: 1x</p>
-    <p id="clickUpgradeCost">Click Upgrade Cost: 50</p>
+    <p id="chickenCount" class="stat">Chicken: 0</p>
+    <p id="clickValue" class="stat">Click Value: 1</p>
+    <p id="autoClickers" class="stat">Auto Clickers: 0</p>
+    <p id="prestiges" class="stat">Prestiges: 0</p>
+    <p id="rebirths" class="stat">Rebirths: 0</p>
+    <p id="autoClickerCost" class="stat">Auto Clicker Cost: 10</p>
+    <p id="prestigeRequirement" class="stat">Prestige Requirement: 1000 Chicken</p>
+    <p id="rebirthRequirement" class="stat">Rebirth Requirement: 10 Prestiges</p>
+    <p id="offlineEarnings" class="stat">Offline Earnings Multiplier: 1x</p>
+    <p id="clickUpgradeCost" class="stat">Click Upgrade Cost: 50</p>
+    <p id="offlineEarningsUpgradeCost" class="stat">Offline Earnings Upgrade Cost: 500</p>
 
     <img id="clickImage" src="chicken.png" alt="Click for Chicken">
 
-    <!-- Action Buttons -->
     <button id="buyAutoClicker">Buy Auto Clicker</button>
     <button id="buyClickUpgrade">Upgrade Click Power</button>
     <button id="prestige">Prestige</button>
     <button id="rebirth">Rebirth</button>
+    <button id="buyOfflineEarningsUpgrade">Upgrade Offline Earnings</button>
 
     <!-- Google AdSense Banner at the Bottom -->
-    <div class="ads-banner">
+    <div style="position: fixed; bottom: 0; left: 0; width: 100%; background: white; text-align: center; padding: 10px; box-shadow: 0 -2px 5px rgba(0,0,0,0.2);">
         <ins class="adsbygoogle"
              style="display:block"
              data-ad-client="ca-pub-4685900264494987"
@@ -108,6 +91,7 @@
                 this.offlineMultiplier = 1;
                 this.clickUpgradeLevel = 0;
                 this.clickUpgradeCost = 50;
+                this.offlineEarningsUpgradeCost = 500;
                 this.lastUpdate = Date.now();
                 this.loadGame();
             }
@@ -116,6 +100,13 @@
                 this.chicken += this.clickValue * this.prestigeMultiplier * this.rebirthMultiplier;
                 this.updateUI();
                 this.saveGame();
+                
+                // Add the animation on click
+                const clickImage = document.getElementById("clickImage");
+                clickImage.classList.add("clicked");
+                setTimeout(() => {
+                    clickImage.classList.remove("clicked");
+                }, 100); // Remove animation after 100ms
             }
     
             buyAutoClicker() {
@@ -140,7 +131,8 @@
             }
     
             prestige() {
-                if (this.chicken >= 1000) {
+                let prestigeCost = Math.floor(1000 * Math.pow(1.5, this.prestiges));
+                if (this.chicken >= prestigeCost) {
                     this.prestiges++;
                     this.prestigeMultiplier *= 1.1 + (this.prestiges * 0.05);
                     this.chicken = 0;
@@ -151,7 +143,8 @@
             }
     
             rebirth() {
-                if (this.prestiges >= 10) {
+                let rebirthCost = Math.floor(10 * Math.pow(1.3, this.rebirths));
+                if (this.prestiges >= 10 && this.chicken >= rebirthCost) {
                     this.rebirths++;
                     this.rebirthMultiplier *= 1.2 + (this.rebirths * 0.1);
                     this.prestiges = 0;
@@ -163,24 +156,37 @@
                 }
             }
     
+            upgradeOfflineEarnings() {
+                if (this.chicken >= this.offlineEarningsUpgradeCost) {
+                    this.chicken -= this.offlineEarningsUpgradeCost;
+                    this.offlineMultiplier *= 1.5;
+                    this.offlineEarningsUpgradeCost *= 2;
+                    this.updateUI();
+                    this.saveGame();
+                }
+            }
+    
             autoGenerate() {
-                this.chicken += this.autoClickers * this.autoClickValue * this.prestigeMultiplier * this.rebirthMultiplier;
+                this.chicken += this.autoClickers * this.autoClickValue * this.prestigeMultiplier * this.rebirthMultiplier * this.offlineMultiplier;
                 this.updateUI();
                 this.saveGame();
             }
     
             updateUI() {
                 let autoClickerCost = Math.floor(10 * Math.pow(1.15, this.autoClickers));
+                let prestigeCost = Math.floor(1000 * Math.pow(1.5, this.prestiges));
+                let rebirthCost = Math.floor(10 * Math.pow(1.3, this.rebirths));
                 document.getElementById("chickenCount").innerText = `Chicken: ${Math.floor(this.chicken)}`;
                 document.getElementById("clickValue").innerText = `Click Value: ${this.clickValue * this.prestigeMultiplier * this.rebirthMultiplier}`;
                 document.getElementById("autoClickers").innerText = `Auto Clickers: ${this.autoClickers}`;
                 document.getElementById("prestiges").innerText = `Prestiges: ${this.prestiges}`;
                 document.getElementById("rebirths").innerText = `Rebirths: ${this.rebirths}`;
                 document.getElementById("autoClickerCost").innerText = `Auto Clicker Cost: ${autoClickerCost}`;
-                document.getElementById("prestigeRequirement").innerText = `Prestige Requirement: 1000 Chicken`;
-                document.getElementById("rebirthRequirement").innerText = `Rebirth Requirement: 10 Prestiges`;
+                document.getElementById("prestigeRequirement").innerText = `Prestige Requirement: ${prestigeCost} Chicken`;
+                document.getElementById("rebirthRequirement").innerText = `Rebirth Requirement: ${rebirthCost} Chicken`;
                 document.getElementById("offlineEarnings").innerText = `Offline Earnings Multiplier: ${this.offlineMultiplier.toFixed(1)}x`;
                 document.getElementById("clickUpgradeCost").innerText = `Click Upgrade Cost: ${this.clickUpgradeCost}`;
+                document.getElementById("offlineEarningsUpgradeCost").innerText = `Offline Earnings Upgrade Cost: ${this.offlineEarningsUpgradeCost}`;
             }
     
             saveGame() {
@@ -206,6 +212,7 @@
         document.getElementById("buyClickUpgrade").addEventListener("click", () => game.buyClickUpgrade());
         document.getElementById("prestige").addEventListener("click", () => game.prestige());
         document.getElementById("rebirth").addEventListener("click", () => game.rebirth());
+        document.getElementById("buyOfflineEarningsUpgrade").addEventListener("click", () => game.upgradeOfflineEarnings());
     </script>
 </body>
 </html>
