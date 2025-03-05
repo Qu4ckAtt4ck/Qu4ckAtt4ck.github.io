@@ -4,7 +4,7 @@ Welcome to **My Web Hub** — a central place for my web projects, where I build
 
 ## Subsites & Projects
 
-- **Peaceable Uncooked Chicken Clicker**  
+- **Placeable Uncooked Chicken Clicker**  
   A clicker game where chickens rule. Simple, fun, and dangerously addictive.
 
 - **Generic Basic Simple AI Chat Bot**  
