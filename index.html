@@ -5,10 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Web Hub</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-        h1 { color: #333; }
-        .links { margin-top: 20px; }
-        .links a { display: block; margin: 10px; font-size: 20px; text-decoration: none; color: #007bff; }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            background-color: #121212; /* Dark mode background */
+            color: white; /* White text */
+            margin: 0;
+        }
+        h1 {
+            color: #ffffff;
+            margin-bottom: 20px;
+        }
+        p {
+            color: #cccccc;
+            margin-bottom: 40px;
+        }
+        .links {
+            margin-top: 20px;
+        }
+        .links a {
+            display: block;
+            margin: 15px auto;
+            font-size: 20px;
+            text-decoration: none;
+            color: white;
+            background-color: #1f1f1f; /* Dark button color */
+            padding: 15px;
+            width: 250px;
+            border-radius: 25px; /* Rounded corners */
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .links a:hover {
+            background-color: #333; /* Darker hover effect */
+            transform: scale(1.05); /* Slightly larger on hover */
+        }
+        .adsbygoogle {
+            margin-top: 40px;
+        }
     </style>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4685900264494987" 
         crossorigin="anonymous"></script>
@@ -29,7 +63,7 @@
     </script>
     
     <div class="links">
-        <a href="site1/index.html">Chicken CLicker</a>
+        <a href="site1/index.html">Chicken Clicker</a>
         <a href="site2/index.html">Chatbot</a>
         <a href="site3/index.html">Soundboard</a>
         <a href="site4/index.html">Social Hub</a>
