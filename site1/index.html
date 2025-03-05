@@ -123,12 +123,12 @@
             }
 
             buyClickUpgrade() {
-                // Cost increases by x² (the square of the upgrade level + 1)
+                // Cost increases by squaring the previous cost
                 if (this.chicken >= this.clickUpgradeCost) {
                     this.chicken -= this.clickUpgradeCost;
                     this.clickValue *= 2; // Increase click power by 2x
                     this.clickUpgradeLevel++;
-                    this.clickUpgradeCost = Math.pow(this.clickUpgradeLevel + 1, 2) * 50; // Cost increases by x²
+                    this.clickUpgradeCost = Math.pow(this.clickUpgradeCost, 2); // Square the previous cost
                     this.updateUI();
                     this.saveGame();
                 }
