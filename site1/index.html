@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Endless Chicken Clicker</title>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4685900264494987" 
-        crossorigin="anonymous"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -41,49 +39,45 @@
             font-size: 18px;
             margin: 10px 0;
         }
-        .ad-container {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: #333;
-            text-align: center;
-            padding: 10px;
-            box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
+        .ui-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .ui-container button {
+            margin: 10px;
         }
     </style>
 </head>
 <body>
     <h1>Endless Chicken Clicker</h1>
-    <p id="chickenCount" class="stat">Chicken: 0</p>
-    <p id="clickValue" class="stat">Click Value: 1</p>
-    <p id="autoClickers" class="stat">Auto Clickers: 0</p>
-    <p id="prestiges" class="stat">Prestiges: 0</p>
-    <p id="rebirths" class="stat">Rebirths: 0</p>
-    <p id="autoClickerCost" class="stat">Auto Clicker Cost: 10</p>
-    <p id="prestigeRequirement" class="stat">Prestige Requirement: 1000 Chicken</p>
-    <p id="rebirthRequirement" class="stat">Rebirth Requirement: 10 Prestiges</p>
-    <p id="offlineEarnings" class="stat">Offline Earnings Multiplier: 1x</p>
-    <p id="clickUpgradeCost" class="stat">Click Upgrade Cost: 50</p>
+    <div class="ui-container">
+        <p id="chickenCount" class="stat">Chicken: 0</p>
+        <p id="clickValue" class="stat">Click Value: 1</p>
+        <p id="autoClickers" class="stat">Auto Clickers: 0</p>
+        <p id="prestiges" class="stat">Prestiges: 0</p>
+        <p id="rebirths" class="stat">Rebirths: 0</p>
+        <p id="autoClickerCost" class="stat">Auto Clicker Cost: 10</p>
+        <p id="prestigeRequirement" class="stat">Prestige Requirement: 1000 Chicken</p>
+        <p id="rebirthRequirement" class="stat">Rebirth Requirement: 10 Prestiges</p>
+        <p id="offlineEarnings" class="stat">Offline Earnings Multiplier: 1x</p>
+        <p id="clickUpgradeCost" class="stat">Click Upgrade Cost: 50</p>
+    </div>
 
     <img id="clickImage" src="chicken.png" alt="Click for Chicken">
 
-    <button id="buyAutoClicker">Buy Auto Clicker</button>
-    <button id="buyClickUpgrade">Upgrade Click Power</button>
-    <button id="prestige">Prestige</button>
-    <button id="rebirth">Rebirth</button>
+    <div class="ui-container">
+        <button id="buyAutoClicker">Buy Auto Clicker</button>
+        <button id="buyClickUpgrade">Upgrade Click Power</button>
+        <button id="prestige">Prestige</button>
+        <button id="rebirth">Rebirth</button>
+    </div>
 
-    <!-- Google AdSense Banner at the Bottom -->
-    <div class="ad-container">
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-client="ca-pub-4685900264494987"
-             data-ad-slot="9865740555"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
-        <script>
-             (adsbygoogle = window.adsbygoogle || []).push({});
-        </script>
+    <div class="ui-container">
+        <button class="settings-button" id="settingsButton">Settings</button>
+        <button class="shop-button" id="shopButton">Shop</button>
     </div>
 
     <script>
@@ -100,8 +94,8 @@
                 this.offlineMultiplier = 1;
                 this.clickUpgradeLevel = 0;
                 this.clickUpgradeCost = 50;
-                this.prestigeCost = 1000; // Starting cost for prestige
-                this.rebirthCost = 10; // Starting cost for rebirth
+                this.prestigeCost = 1000;
+                this.rebirthCost = 10;
                 this.lastUpdate = Date.now();
                 this.loadGame();
             }
@@ -111,12 +105,11 @@
                 this.updateUI();
                 this.saveGame();
                 
-                // Add the animation on click
                 const clickImage = document.getElementById("clickImage");
                 clickImage.classList.add("clicked");
                 setTimeout(() => {
                     clickImage.classList.remove("clicked");
-                }, 100); // Remove animation after 100ms
+                }, 100);
             }
     
             buyAutoClicker() {
@@ -146,7 +139,7 @@
                     this.prestigeMultiplier *= 1.1 + (this.prestiges * 0.05);
                     this.chicken = 0;
                     this.autoClickers = 0;
-                    this.prestigeCost = Math.floor(this.prestigeCost * 1.5); // Scale cost for next prestige
+                    this.prestigeCost = Math.floor(this.prestigeCost * 1.5);
                     this.updateUI();
                     this.saveGame();
                 }
@@ -160,7 +153,7 @@
                     this.prestigeMultiplier = 1;
                     this.chicken = 0;
                     this.autoClickers = 0;
-                    this.rebirthCost = Math.floor(this.rebirthCost * 1.5); // Scale cost for next rebirth
+                    this.rebirthCost = Math.floor(this.rebirthCost * 1.5);
                     this.updateUI();
                     this.saveGame();
                 }
@@ -209,6 +202,15 @@
         document.getElementById("buyClickUpgrade").addEventListener("click", () => game.buyClickUpgrade());
         document.getElementById("prestige").addEventListener("click", () => game.prestige());
         document.getElementById("rebirth").addEventListener("click", () => game.rebirth());
+        
+        // For Settings and Shop buttons
+        document.getElementById("settingsButton").addEventListener("click", () => {
+            alert("Settings button clicked!");
+        });
+
+        document.getElementById("shopButton").addEventListener("click", () => {
+            alert("Shop button clicked!");
+        });
     </script>
 </body>
 </html>
