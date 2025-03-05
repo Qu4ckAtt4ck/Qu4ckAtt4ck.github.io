@@ -8,11 +8,21 @@ class ClickerGame {
         // Initialize the canvas and context
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
-        this.canvas.width = 800;  // Adjust width as necessary
-        this.canvas.height = 600; // Adjust height as necessary
+        
+        // Set initial size based on window size
+        this.resizeCanvas();
         
         // Start the game loop
         this.gameLoop();
+
+        // Event listener for resizing the canvas
+        window.addEventListener('resize', () => this.resizeCanvas());
+    }
+
+    // Function to resize the canvas based on screen size
+    resizeCanvas() {
+        this.canvas.width = window.innerWidth;  // Set width based on window size
+        this.canvas.height = window.innerHeight; // Set height based on window size
     }
 
     click() {
