@@ -99,7 +99,7 @@
                 this.lastUpdate = Date.now();
                 this.loadGame();
             }
-    
+
             click() {
                 this.chicken += this.clickValue * this.prestigeMultiplier * this.rebirthMultiplier;
                 this.updateUI();
@@ -111,7 +111,7 @@
                     clickImage.classList.remove("clicked");
                 }, 100);
             }
-    
+
             buyAutoClicker() {
                 let cost = Math.floor(10 * Math.pow(1.15, this.autoClickers));
                 if (this.chicken >= cost) {
@@ -121,30 +121,31 @@
                     this.saveGame();
                 }
             }
-    
+
             buyClickUpgrade() {
+                // Cost increases by x² (the square of the upgrade level + 1)
                 if (this.chicken >= this.clickUpgradeCost) {
                     this.chicken -= this.clickUpgradeCost;
-                    this.clickValue *= 2;
+                    this.clickValue *= 2; // Increase click power by 2x
                     this.clickUpgradeLevel++;
-                    this.clickUpgradeCost *= 2;
+                    this.clickUpgradeCost = Math.pow(this.clickUpgradeLevel + 1, 2) * 50; // Cost increases by x²
                     this.updateUI();
                     this.saveGame();
                 }
             }
-    
+
             prestige() {
                 if (this.chicken >= this.prestigeCost) {
                     this.prestiges++;
                     this.prestigeMultiplier *= 1.1 + (this.prestiges * 0.05);
                     this.chicken = 0;
                     this.autoClickers = 0;
-                    this.prestigeCost = Math.floor(this.prestigeCost * 1.5);
+                    this.prestigeCost *= 10; // Prestige cost multiplies by 10
                     this.updateUI();
                     this.saveGame();
                 }
             }
-    
+
             rebirth() {
                 if (this.prestiges >= this.rebirthCost) {
                     this.rebirths++;
@@ -153,18 +154,18 @@
                     this.prestigeMultiplier = 1;
                     this.chicken = 0;
                     this.autoClickers = 0;
-                    this.rebirthCost = Math.floor(this.rebirthCost * 1.5);
+                    this.rebirthCost *= 10; // Rebirth cost multiplies by 10
                     this.updateUI();
                     this.saveGame();
                 }
             }
-    
+
             autoGenerate() {
                 this.chicken += this.autoClickers * this.autoClickValue * this.prestigeMultiplier * this.rebirthMultiplier;
                 this.updateUI();
                 this.saveGame();
             }
-    
+
             updateUI() {
                 let autoClickerCost = Math.floor(10 * Math.pow(1.15, this.autoClickers));
                 document.getElementById("chickenCount").innerText = `Chicken: ${Math.floor(this.chicken)}`;
@@ -178,11 +179,11 @@
                 document.getElementById("offlineEarnings").innerText = `Offline Earnings Multiplier: ${this.offlineMultiplier.toFixed(1)}x`;
                 document.getElementById("clickUpgradeCost").innerText = `Click Upgrade Cost: ${this.clickUpgradeCost}`;
             }
-    
+
             saveGame() {
                 localStorage.setItem('chickenClicker', JSON.stringify(this));
             }
-    
+
             loadGame() {
                 let savedGame = JSON.parse(localStorage.getItem('chickenClicker'));
                 if (savedGame) {
@@ -193,16 +194,16 @@
                 }
             }
         }
-    
+
         const game = new Game();
         setInterval(() => game.autoGenerate(), 1000);
-    
+
         document.getElementById("clickImage").addEventListener("click", () => game.click());
         document.getElementById("buyAutoClicker").addEventListener("click", () => game.buyAutoClicker());
         document.getElementById("buyClickUpgrade").addEventListener("click", () => game.buyClickUpgrade());
         document.getElementById("prestige").addEventListener("click", () => game.prestige());
         document.getElementById("rebirth").addEventListener("click", () => game.rebirth());
-        
+
         // For Settings and Shop buttons
         document.getElementById("settingsButton").addEventListener("click", () => {
             alert("Settings button clicked!");
