@@ -49,6 +49,30 @@
         .ui-container button {
             margin: 10px;
         }
+        /* Cosmetic Shop Modal */
+        #cosmeticShopModal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            overflow: auto;
+        }
+        #cosmeticShopContent {
+            background-color: #fff;
+            margin: 15% auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 500px;
+            text-align: center;
+            border-radius: 10px;
+        }
+        #cosmeticShopContent button {
+            background-color: #FF6347;
+        }
     </style>
 </head>
 <body>
@@ -80,6 +104,17 @@
         <button class="shop-button" id="shopButton">Shop</button>
     </div>
 
+    <!-- Cosmetic Shop Modal -->
+    <div id="cosmeticShopModal">
+        <div id="cosmeticShopContent">
+            <h2>Cosmetic Shop</h2>
+            <p>Choose your favorite cosmetic upgrades!</p>
+            <button id="buyBackgroundUpgrade">Buy Background Theme</button>
+            <button id="buyChickenSkin">Buy Chicken Skin</button>
+            <button id="closeShop">Close Shop</button>
+        </div>
+    </div>
+
     <script>
         class Game {
             constructor() {
@@ -98,6 +133,8 @@
                 this.rebirthCost = 10;
                 this.lastUpdate = Date.now();
                 this.loadGame();
+                this.isBackgroundUpgraded = false; // New cosmetic feature
+                this.isChickenSkinUpgraded = false; // New cosmetic feature
             }
 
             click() {
@@ -123,7 +160,6 @@
             }
 
             buyClickUpgrade() {
-                // Cost increases by squaring the previous cost
                 if (this.chicken >= this.clickUpgradeCost) {
                     this.chicken -= this.clickUpgradeCost;
                     this.clickValue *= 2; // Increase click power by 2x
@@ -193,25 +229,50 @@
                     this.updateUI();
                 }
             }
+
+            // Cosmetic Purchases
+            buyBackgroundUpgrade() {
+                if (this.chicken >= 500) {
+                    this.chicken -= 500;
+                    this.isBackgroundUpgraded = true; // Cosmetic feature activated
+                    document.body.style.backgroundColor = "#FFD700"; // Example: Golden background theme
+                    this.updateUI();
+                    this.saveGame();
+                }
+            }
+
+            buyChickenSkin() {
+                if (this.chicken >= 1000) {
+                    this.chicken -= 1000;
+                    this.isChickenSkinUpgraded = true; // Cosmetic feature activated
+                    document.getElementById("clickImage").src = "golden_chicken.png"; // Example: Golden chicken skin
+                    this.updateUI();
+                    this.saveGame();
+                }
+            }
         }
 
         const game = new Game();
         setInterval(() => game.autoGenerate(), 1000);
 
+        // Event listeners
         document.getElementById("clickImage").addEventListener("click", () => game.click());
         document.getElementById("buyAutoClicker").addEventListener("click", () => game.buyAutoClicker());
         document.getElementById("buyClickUpgrade").addEventListener("click", () => game.buyClickUpgrade());
         document.getElementById("prestige").addEventListener("click", () => game.prestige());
         document.getElementById("rebirth").addEventListener("click", () => game.rebirth());
 
-        // For Settings and Shop buttons
-        document.getElementById("settingsButton").addEventListener("click", () => {
-            alert("Settings button clicked!");
+        // Open and Close Cosmetic Shop
+        document.getElementById("shopButton").addEventListener("click", () => {
+            document.getElementById("cosmeticShopModal").style.display = "block";
         });
 
-        document.getElementById("shopButton").addEventListener("click", () => {
-            alert("Shop button clicked!");
+        document.getElementById("closeShop").addEventListener("click", () => {
+            document.getElementById("cosmeticShopModal").style.display = "none";
         });
+
+        document.getElementById("buyBackgroundUpgrade").addEventListener("click", () => game.buyBackgroundUpgrade());
+        document.getElementById("buyChickenSkin").addEventListener("click", () => game.buyChickenSkin());
     </script>
 </body>
 </html>
