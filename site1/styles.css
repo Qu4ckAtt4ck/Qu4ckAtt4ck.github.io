@@ -1,82 +1,96 @@
-/* General Styles */
+/* General styles */
 body {
     font-family: Arial, sans-serif;
-    background-color: #f5f5f5;
+    margin: 0;
+    padding: 0;
+    background-color: #333;
+    color: white;
+    overflow: hidden;
+}
+
+/* Centering the game container */
+#game-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    margin: 0;
 }
 
-#game-container {
-    position: relative;
+/* Canvas styles */
+#gameCanvas {
+    display: block;
+    background-color: #222; /* Dark background color for the canvas */
+    margin: 0 auto; /* Center horizontally */
+    position: absolute; /* Ensures it's positioned absolutely within its container */
+    top: 0;
+    left: 0;
+    width: 100%; /* Fill 100% of the screen width */
+    height: 100%; /* Fill 100% of the screen height */
 }
 
-canvas {
-    border: 2px solid #000;
-}
-
-/* Top-right buttons */
+/* Buttons at the top-right corner */
 #top-right-buttons {
-    position: fixed;
+    position: absolute;
     top: 10px;
     right: 10px;
     display: flex;
-    flex-direction: column;
+    gap: 10px;
 }
 
+/* Styling buttons */
 button {
-    background-color: #4CAF50;
+    background-color: #444;
     color: white;
-    border: none;
+    border: 1px solid #555;
     padding: 10px;
-    margin: 5px;
     cursor: pointer;
-    border-radius: 5px;
 }
 
 button:hover {
-    background-color: #45a049;
+    background-color: #666;
 }
 
-/* Popup Menus */
+/* Popup menu styles (Settings & Cosmetics) */
 .popup {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: #fff;
+    background-color: #333;
+    border: 2px solid #555;
     padding: 20px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     display: none;
-    z-index: 10;
+    z-index: 1000; /* Ensure it shows above other content */
     width: 300px;
-    border-radius: 10px;
     text-align: center;
 }
 
-.popup h2 {
-    margin-bottom: 20px;
-}
-
+/* Close button for popups */
 .close-button {
-    background-color: red;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #444;
     color: white;
     border: none;
-    padding: 5px 10px;
+    padding: 5px;
     cursor: pointer;
-    border-radius: 5px;
 }
 
+/* Close button hover */
 .close-button:hover {
-    background-color: #cc0000;
+    background-color: #666;
 }
 
-/* Inventory and other cosmetic elements */
-#inventory {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 20px;
+/* Styling for the popup contents */
+h2 {
+    margin: 20px 0;
+}
+
+button#save-game, button#import-save {
+    margin: 10px;
 }
