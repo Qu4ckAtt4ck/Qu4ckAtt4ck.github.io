@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Endless Clicker</title>
     <link rel="stylesheet" href="styles.css">
-</head>https://github.com/Qu4ckAtt4ck/Qu4ckAtt4ck.github.io/blob/main/site1/index.html
+</head>
 <body>
     <div id="game-container">
         <canvas id="gameCanvas"></canvas>
@@ -19,7 +19,7 @@
     
     <!-- Settings Menu -->
     <div id="settings-menu" class="popup">
-        <button class="close-button">X</button>
+        <button class="close-button" id="close-settings">X</button>
         <h2>Settings</h2>
         <button id="save-game">Save Game</button>
         <button id="import-save">Import Save</button>
@@ -28,16 +28,15 @@
     
     <!-- Cosmetics Menu -->
     <div id="cosmetics-menu" class="popup">
-        <button class="close-button">X</button>
+        <button class="close-button" id="close-cosmetics">X</button>
         <h2>Cosmetic Shop</h2>
         <div id="inventory"></div>
     </div>
     
-<script src="game.js"></script>
-<script src="settings.js"></script>
-<script src="cosmetics.js"></script>
-<script src="encryption.js"></script>
-<script src="save.js"></script>
-
+    <script src="game.js"></script>
+    <script src="settings.js"></script>
+    <script src="cosmetics.js"></script>
+    <script src="encryption.js"></script>
+    <script src="save.js"></script>
 </body>
 </html>
