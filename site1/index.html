@@ -3,26 +3,60 @@
 <head>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4685900264494987" 
         crossorigin="anonymous"></script>
-</head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Endless Chicken Clicker</title>
     <style>
+        /* Dark Mode */
         body {
+            background-color: #121212;
+            color: white;
             font-family: Arial, sans-serif;
             text-align: center;
             margin: 50px;
         }
+        
+        /* Button Styles */
         button {
-            padding: 10px 20px;
+            padding: 12px 24px;
             margin: 10px;
             font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
         }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Button for Disabled */
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        /* Image */
         #clickImage {
             display: block;
             margin: 20px auto;
             width: 100px;
             cursor: pointer;
+        }
+
+        /* Ad Banner */
+        .ads-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #121212;
+            text-align: center;
+            padding: 10px;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
         }
     </style>
 </head>
@@ -41,13 +75,14 @@
 
     <img id="clickImage" src="chicken.png" alt="Click for Chicken">
 
+    <!-- Action Buttons -->
     <button id="buyAutoClicker">Buy Auto Clicker</button>
     <button id="buyClickUpgrade">Upgrade Click Power</button>
     <button id="prestige">Prestige</button>
     <button id="rebirth">Rebirth</button>
 
     <!-- Google AdSense Banner at the Bottom -->
-    <div style="position: fixed; bottom: 0; left: 0; width: 100%; background: white; text-align: center; padding: 10px; box-shadow: 0 -2px 5px rgba(0,0,0,0.2);">
+    <div class="ads-banner">
         <ins class="adsbygoogle"
              style="display:block"
              data-ad-client="ca-pub-4685900264494987"
