@@ -86,19 +86,13 @@
                 this.rebirthCount = 0;
             }
 
-            click() {
-                this.chickens += this.clickPower;
-                this.updateUI();
-                this.saveGame();
-            }
-
             clickChicken() {
                 const chickenImage = document.getElementById("chickenImage");
                 chickenImage.style.transform = "scale(1.1)";
                 setTimeout(() => {
                     chickenImage.style.transform = "scale(1)";
                 }, 200);
-                this.chickens += 1;  // Each click gives 1 chicken
+                this.chickens += this.clickPower;  // Each click gives chickens based on clickPower
                 this.updateUI();
                 this.saveGame();
             }
@@ -207,19 +201,7 @@
                 const reader = new FileReader();
                 reader.onload = (event) => {
                     const gameData = JSON.parse(event.target.result);
-                    this.chickens = gameData.chickens;
-                    this.premiumChickens = gameData.premiumChickens;
-                    this.clickPower = gameData.clickPower;
-                    this.autoClickers = gameData.autoClickers;
-                    this.offlineEarningsMultiplier = gameData.offlineEarningsMultiplier;
-                    this.offlineEarningsUpgradeCost = gameData.offlineEarningsUpgradeCost;
-                    this.clickUpgradeCost = gameData.clickUpgradeCost;
-                    this.autoClickerCost = gameData.autoClickerCost;
-                    this.prestigeCost = gameData.prestigeCost;
-                    this.rebirthCost = gameData.rebirthCost;
-                    this.chickenSkinCost = gameData.chickenSkinCost;
-                    this.backgroundUpgradeCost = gameData.backgroundUpgradeCost;
-                    this.rebirthCount = gameData.rebirthCount;
+                    Object.assign(this, gameData);
                     this.updateUI();
                 };
                 reader.readAsText(file);
@@ -228,43 +210,13 @@
 
         const game = new Game();
 
-        document.getElementById("clickButton").addEventListener("click", () => game.click());
-        document.getElementById("buyAutoClicker").addEventListener("click", () => game.buyAutoClicker());
-        document.getElementById("buyClickUpgrade").addEventListener("click", () => game.buyClickUpgrade());
-        document.getElementById("prestige").addEventListener("click", () => game.prestige());
-        document.getElementById("rebirth").addEventListener("click", () => game.rebirth());
-        document.getElementById("buyOfflineEarningsUpgrade").addEventListener("click", () => game.buyOfflineEarningsUpgrade());
-        document.getElementById("buyChickenSkin").addEventListener("click", () => game.buyChickenSkin());
-        document.getElementById("buyBackground").addEventListener("click", () => game.buyBackground());
-
-        // Settings Button
-        document.getElementById("settingsButton").addEventListener("click", () => {
-            document.getElementById("settingsModal").style.display = "block";
-        });
-
-        document.getElementById("closeSettings").addEventListener("click", () => {
-            document.getElementById("settingsModal").style.display = "none";
-        });
-
-        document.getElementById("saveGame").addEventListener("click", () => {
-            game.saveGame();
-        });
-
-        document.getElementById("loadGameFile").addEventListener("change", (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                game.loadGame(file);
-            }
-        });
-
-        // Cosmetic Shop Button
-        document.getElementById("shopButton").addEventListener("click", () => {
-            document.getElementById("shopModal").style.display = "block";
-        });
-
-        document.getElementById("closeShop").addEventListener("click", () => {
-            document.getElementById("shopModal").style.display = "none";
-        });
+        document.getElementById("buyAutoClicker").onclick = () => game.buyAutoClicker();
+        document.getElementById("buyClickUpgrade").onclick = () => game.buyClickUpgrade();
+        document.getElementById("prestige").onclick = () => game.prestige();
+        document.getElementById("rebirth").onclick = () => game.rebirth();
+        document.getElementById("buyOfflineEarningsUpgrade").onclick = () => game.buyOfflineEarningsUpgrade();
+        document.getElementById("buyChickenSkin").onclick = () => game.buyChickenSkin();
+        document.getElementById("buyBackground").onclick = () => game.buyBackground();
     </script>
 </body>
 </html>
