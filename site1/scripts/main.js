@@ -3,20 +3,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const chickenDisplay = document.getElementById("chickenCount");
     const chickenButton = document.getElementById("chickenButton");
 
+    // Update the display with the current chicken count
+    const updateChickenDisplay = () => {
+        chickenDisplay.textContent = chickenCount;
+    };
+
+    // Increase the chicken count when the chicken button is clicked
     chickenButton.addEventListener("click", () => {
         chickenCount++;
-        chickenDisplay.textContent = chickenCount;
+        updateChickenDisplay();
     });
 
-    // Initialize shop
-    if (typeof setupShop === "function") {
-        setupShop(chickenCount, (cost) => {
-            if (chickenCount >= cost) {
-                chickenCount -= cost;
-                chickenDisplay.textContent = chickenCount;
-                return true;
-            }
-            return false;
-        });
-    }
+    // Initial call to set the chicken count
+    updateChickenDisplay();
 });
