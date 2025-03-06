@@ -4,18 +4,291 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Endless Chicken Clicker</title>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #2f2f2f;
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            font-size: 3em;
+            color: #ffdd57;
+            margin-top: 30px;
+        }
+
+        .stat {
+            font-size: 24px;
+            margin: 15px 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #clickImage {
+            display: block;
+            margin: 30px auto;
+            width: 120px;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+
+        #clickImage.clicked {
+            transform: scale(1.1); 
+        }
+
+        .ui-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        #cosmeticShopModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            overflow: auto;
+            z-index: 2;
+        }
+
+        #cosmeticShopContent {
+            background-color: #fff;
+            padding: 20px;
+            width: 80%;
+            max-width: 500px;
+            margin: 10% auto;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        #cosmeticShopContent button {
+            background-color: #FF6347;
+            font-size: 16px;
+            padding: 10px 20px;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin: 5px;
+            cursor: pointer;
+        }
+
+        #cosmeticShopContent button:hover {
+            background-color: #FF4500;
+        }
+
+    </style>
 </head>
 <body>
     <h1>Endless Chicken Clicker</h1>
-    <p>Chickens: <span id="chickenCount">0</span></p>
-    <button id="chickenButton">
-        <img src="chicken.png" alt="Chicken" width="100">
-    </button>
-    <h2>Shop</h2>
-    <div id="shop"></div>
-    
-    <script src="scripts/shop.js"></script>
-    <script src="scripts/main.js"></script>
+    <div class="ui-container">
+        <p id="chickenCount" class="stat">Chicken: 0</p>
+        <p id="clickValue" class="stat">Click Value: 1</p>
+        <p id="autoClickers" class="stat">Auto Clickers: 0</p>
+        <p id="prestiges" class="stat">Prestiges: 0</p>
+        <p id="rebirths" class="stat">Rebirths: 0</p>
+        <p id="autoClickerCost" class="stat">Auto Clicker Cost: 10</p>
+        <p id="prestigeRequirement" class="stat">Prestige Requirement: 1000 Chicken</p>
+        <p id="rebirthRequirement" class="stat">Rebirth Requirement: 10 Prestiges</p>
+        <p id="offlineEarnings" class="stat">Offline Earnings Multiplier: 1x</p>
+        <p id="clickUpgradeCost" class="stat">Click Upgrade Cost: 50</p>
+    </div>
+
+    <img id="clickImage" src="chicken.png" alt="Click for Chicken">
+
+    <div class="ui-container">
+        <button id="buyAutoClicker">Buy Auto Clicker</button>
+        <button id="buyClickUpgrade">Upgrade Click Power</button>
+        <button id="prestige">Prestige</button>
+        <button id="rebirth">Rebirth</button>
+    </div>
+
+    <div class="ui-container">
+        <button class="settings-button" id="settingsButton">Settings</button>
+        <button class="shop-button" id="shopButton">Shop</button>
+    </div>
+
+    <!-- Cosmetic Shop Modal -->
+    <div id="cosmeticShopModal">
+        <div id="cosmeticShopContent">
+            <h2>Cosmetic Shop</h2>
+            <p>Choose your favorite cosmetic upgrades!</p>
+            <button id="buyBackgroundUpgrade">Buy Background Theme</button>
+            <button id="buyChickenSkin">Buy Chicken Skin</button>
+            <button id="closeShop">Close Shop</button>
+        </div>
+    </div>
+
+    <script>
+        class Game {
+            constructor() {
+                this.chicken = 0;
+                this.clickValue = 1;
+                this.autoClickers = 0;
+                this.autoClickValue = 0.1;
+                this.prestigeMultiplier = 1;
+                this.rebirthMultiplier = 1;
+                this.prestiges = 0;
+                this.rebirths = 0;
+                this.offlineMultiplier = 1;
+                this.clickUpgradeLevel = 0;
+                this.clickUpgradeCost = 50;
+                this.prestigeCost = 1000;
+                this.rebirthCost = 10;
+                this.lastUpdate = Date.now();
+                this.loadGame();
+                this.isBackgroundUpgraded = false;
+                this.isChickenSkinUpgraded = false;
+            }
+
+            click() {
+                this.chicken += this.clickValue * this.prestigeMultiplier * this.rebirthMultiplier;
+                this.updateUI();
+                this.saveGame();
+                
+                const clickImage = document.getElementById("clickImage");
+                clickImage.classList.add("clicked");
+                setTimeout(() => {
+                    clickImage.classList.remove("clicked");
+                }, 100);
+            }
+
+            buyAutoClicker() {
+                let cost = Math.floor(10 * Math.pow(1.15, this.autoClickers));
+                if (this.chicken >= cost) {
+                    this.chicken -= cost;
+                    this.autoClickers++;
+                    this.updateUI();
+                    this.saveGame();
+                }
+            }
+
+            buyClickUpgrade() {
+                if (this.chicken >= this.clickUpgradeCost) {
+                    this.chicken -= this.clickUpgradeCost;
+                    this.clickValue *= 2;
+                    this.clickUpgradeLevel++;
+                    this.clickUpgradeCost = Math.pow(this.clickUpgradeCost, 2);
+                    this.updateUI();
+                    this.saveGame();
+                }
+            }
+
+            prestige() {
+                if (this.chicken >= this.prestigeCost) {
+                    this.prestiges++;
+                    this.prestigeMultiplier *= 1.1 + (this.prestiges * 0.05);
+                    this.chicken = 0;
+                    this.autoClickers = 0;
+                    this.prestigeCost *= 10;
+                    this.updateUI();
+                    this.saveGame();
+                }
+            }
+
+            rebirth() {
+                if (this.prestiges >= this.rebirthCost) {
+                    this.rebirths++;
+                    this.rebirthMultiplier *= 1.2 + (this.rebirths * 0.1);
+                    this.prestiges = 0;
+                    this.prestigeMultiplier = 1;
+                    this.chicken = 0;
+                    this.autoClickers = 0;
+                    this.rebirthCost *= 10;
+                    this.updateUI();
+                    this.saveGame();
+                }
+            }
+
+            autoGenerate() {
+                this.chicken += this.autoClickers * this.autoClickValue * this.prestigeMultiplier * this.rebirthMultiplier;
+                this.updateUI();
+                this.saveGame();
+            }
+
+            updateUI() {
+                let autoClickerCost = Math.floor(10 * Math.pow(1.15, this.autoClickers));
+                document.getElementById("chickenCount").innerText = `Chicken: ${Math.floor(this.chicken)}`;
+                document.getElementById("clickValue").innerText = `Click Value: ${this.clickValue * this.prestigeMultiplier * this.rebirthMultiplier}`;
+                document.getElementById("autoClickers").innerText = `Auto Clickers: ${this.autoClickers}`;
+                document.getElementById("prestiges").innerText = `Prestiges: ${this.prestiges}`;
+                document.getElementById("rebirths").innerText = `Rebirths: ${this.rebirths}`;
+                document.getElementById("autoClickerCost").innerText = `Auto Clicker Cost: ${autoClickerCost}`;
+                document.getElementById("prestigeRequirement").innerText = `Prestige Requirement: ${this.prestigeCost} Chicken`;
+                document.getElementById("rebirthRequirement").innerText = `Rebirth Requirement: ${this.rebirthCost} Prestiges`;
+                document.getElementById("offlineEarnings").innerText = `Offline Earnings Multiplier: ${this.offlineMultiplier.toFixed(1)}x`;
+                document.getElementById("clickUpgradeCost").innerText = `Click Upgrade Cost: ${this.clickUpgradeCost}`;
+            }
+
+            saveGame() {
+                localStorage.setItem('chickenClicker', JSON.stringify(this));
+            }
+
+            loadGame() {
+                let savedGame = JSON.parse(localStorage.getItem('chickenClicker'));
+                if (savedGame) {
+                    Object.assign(this, savedGame);
+                    let timeElapsed = (Date.now() - this.lastUpdate) / 1000;
+                    this.chicken += timeElapsed * this.autoClickers * this.autoClickValue * this.prestigeMultiplier * this.rebirthMultiplier * this.offlineMultiplier;
+                    this.updateUI();
+                }
+            }
+
+            // Cosmetic Purchases
+            buyBackgroundUpgrade() {
+                if (this.chicken >= 500) {
+                    this.chicken -= 500;
+                    this.isBackgroundUpgraded = true;
+                    document.body.style.backgroundColor = "#FFD700"; // Golden background
+                    this.updateUI();
+                    this.saveGame();
+                }
+            }
+
+            buyChickenSkin() {
+                if (this.chicken >= 1000) {
+                    this.chicken -= 1000;
+                    this.isChickenSkinUpgraded = true;
+                    document.getElementById("clickImage").src = "golden_chicken.png"; // Golden chicken
+                    this.updateUI();
+                    this.saveGame();
+                }
+            }
+        }
+
+        const game = new Game();
+
+        document.getElementById("clickImage").addEventListener("click", () => game.click());
+        document.getElementById("buyAutoClicker").addEventListener("click", () => game.buyAutoClicker());
+        document.getElementById("buyClickUpgrade").addEventListener("click", () => game.buyClickUpgrade());
+        document.getElementById("prestige").addEventListener("click", () => game.prestige());
+        document.getElementById("rebirth").addEventListener("click", () => game.rebirth());
+
+        // Cosmetic Shop Modal
+        document.getElementById("shopButton").addEventListener("click", () => document.getElementById("cosmeticShopModal").style.display = "block");
+        document.getElementById("closeShop").addEventListener("click", () => document.getElementById("cosmeticShopModal").style.display = "none");
+        document.getElementById("buyBackgroundUpgrade").addEventListener("click", () => game.buyBackgroundUpgrade());
+        document.getElementById("buyChickenSkin").addEventListener("click", () => game.buyChickenSkin());
+    </script>
 </body>
 </html>
