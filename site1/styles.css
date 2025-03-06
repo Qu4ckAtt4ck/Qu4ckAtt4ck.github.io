@@ -1,0 +1,20 @@
+/* Change the background color */
+body {
+    background-color: #2f2f2f;
+}
+
+/* Style the buttons in the shop */
+.shop-button {
+    background-color: #4a90e2;
+    color: black;
+    border-radius: 12px; /* Round corners */
+    padding: 10px 20px; /* Adjust the padding as needed */
+    border: none; /* Remove default border */
+    font-size: 16px; /* Adjust text size if needed */
+    cursor: pointer;
+}
+
+/* Optional: Style the buttons on hover */
+.shop-button:hover {
+    background-color: #357ABD; /* Slightly darker shade of #4a90e2 for hover effect */
+}
