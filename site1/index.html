@@ -36,10 +36,10 @@
     </div>
 
     <div class="button-container">
-        <button id="buyAutoClicker" class="upgrade-button">Buy Auto Clicker (Cost: 50 chickens)</button>
-        <button id="buyClickUpgrade" class="upgrade-button">Buy Click Power Upgrade (Cost: 100 chickens)</button>
-        <button id="prestige" class="upgrade-button">Prestige (Cost: 500 chickens)</button>
-        <button id="rebirth" class="upgrade-button">Rebirth (Cost: 1000 chickens)</button>
+        <button id="buyAutoClicker" class="upgrade-button">Buy Auto Clicker (Cost: 10 chickens)</button>
+        <button id="buyClickUpgrade" class="upgrade-button">Buy Click Power Upgrade (Cost: 50 chickens)</button>
+        <button id="prestige" class="upgrade-button">Prestige (Cost: 1000 chickens)</button>
+        <button id="rebirth" class="upgrade-button">Rebirth (Cost: 10 Prestiges)</button>
         <button id="buyOfflineEarningsUpgrade" class="upgrade-button">Buy Offline Earnings Upgrade (Cost: 100 chickens)</button>
     </div>
 
@@ -76,14 +76,18 @@
                 this.clickPower = 1;
                 this.autoClickers = 0;
                 this.offlineEarningsMultiplier = 1.0;
+                this.autoClickerCost = 10;
+                this.clickUpgradeCost = 50;
+                this.clickUpgradeMultiplier = 2;
+                this.clickUpgradeCostMultiplier = 50;
+                this.prestigeCost = 1000;
+                this.prestigeCostMultiplier = 10;
+                this.rebirthCostMultiplier = 10;
+                this.rebirthCount = 0;
+                this.prestigeCount = 0;
                 this.offlineEarningsUpgradeCost = 100;
-                this.clickUpgradeCost = 100;
-                this.autoClickerCost = 50;
-                this.prestigeCost = 500;
-                this.rebirthCost = 1000;
                 this.chickenSkinCost = 100;
                 this.backgroundUpgradeCost = 100;
-                this.rebirthCount = 0;
             }
 
             clickChicken() {
@@ -92,7 +96,7 @@
                 setTimeout(() => {
                     chickenImage.style.transform = "scale(1)";
                 }, 200);
-                this.chickens += this.clickPower;  // Each click gives chickens based on clickPower
+                this.chickens += this.clickPower;
                 this.updateUI();
                 this.saveGame();
             }
@@ -101,7 +105,7 @@
                 if (this.chickens >= this.autoClickerCost) {
                     this.chickens -= this.autoClickerCost;
                     this.autoClickers++;
-                    this.autoClickerCost = Math.floor(this.autoClickerCost * 1.5);
+                    this.autoClickerCost = Math.floor(this.autoClickerCost * 1.4); // Scale cost by 140%
                     this.updateUI();
                     this.saveGame();
                 }
@@ -110,8 +114,8 @@
             buyClickUpgrade() {
                 if (this.chickens >= this.clickUpgradeCost) {
                     this.chickens -= this.clickUpgradeCost;
-                    this.clickPower++;
-                    this.clickUpgradeCost = Math.floor(this.clickUpgradeCost * 1.5);
+                    this.clickPower *= this.clickUpgradeMultiplier; // Double the click power
+                    this.clickUpgradeCost = Math.floor(this.clickUpgradeCost * this.clickUpgradeCostMultiplier); // Scale cost
                     this.updateUI();
                     this.saveGame();
                 }
@@ -122,21 +126,22 @@
                     this.chickens = 0;
                     this.clickPower = 1;
                     this.autoClickers = 0;
-                    this.prestigeCost = Math.floor(this.prestigeCost * 1.5);
-                    this.rebirthCount++;
+                    this.prestigeCount++;
+                    this.prestigeCost = Math.floor(this.prestigeCost * this.prestigeCostMultiplier); // Scale cost by 10x
                     this.updateUI();
                     this.saveGame();
                 }
             }
 
             rebirth() {
-                if (this.chickens >= this.rebirthCost) {
-                    this.chickens = 0;
-                    this.clickPower = 1;
-                    this.autoClickers = 0;
-                    this.rebirthCost = Math.floor(this.rebirthCost * 1.5);
+                if (this.prestigeCount >= 10) {
+                    this.prestigeCount -= 10;
                     this.rebirthCount++;
-                    this.premiumChickens = Math.floor(this.rebirthCount / 100);
+                    if (this.rebirthCount % 100 === 0) {
+                        this.premiumChickens++;
+                    }
+                    this.prestigeCost = 1000; // Reset prestige cost on rebirth
+                    this.prestigeCount = 0;
                     this.updateUI();
                     this.saveGame();
                 }
@@ -145,26 +150,8 @@
             buyOfflineEarningsUpgrade() {
                 if (this.chickens >= this.offlineEarningsUpgradeCost) {
                     this.chickens -= this.offlineEarningsUpgradeCost;
-                    this.offlineEarningsMultiplier *= 1.1;
-                    this.offlineEarningsUpgradeCost = Math.floor(this.offlineEarningsUpgradeCost * 1.5);
-                    this.updateUI();
-                    this.saveGame();
-                }
-            }
-
-            buyChickenSkin() {
-                if (this.premiumChickens >= this.chickenSkinCost) {
-                    this.premiumChickens -= this.chickenSkinCost;
-                    alert("Chicken skin purchased!");
-                    this.updateUI();
-                    this.saveGame();
-                }
-            }
-
-            buyBackground() {
-                if (this.premiumChickens >= this.backgroundUpgradeCost) {
-                    this.premiumChickens -= this.backgroundUpgradeCost;
-                    alert("Background purchased!");
+                    this.offlineEarningsMultiplier *= 1.1; // Increase offline earnings multiplier
+                    this.offlineEarningsUpgradeCost = Math.floor(this.offlineEarningsUpgradeCost * 1.5); // Scale cost
                     this.updateUI();
                     this.saveGame();
                 }
@@ -185,14 +172,14 @@
                     clickPower: this.clickPower,
                     autoClickers: this.autoClickers,
                     offlineEarningsMultiplier: this.offlineEarningsMultiplier,
-                    offlineEarningsUpgradeCost: this.offlineEarningsUpgradeCost,
-                    clickUpgradeCost: this.clickUpgradeCost,
                     autoClickerCost: this.autoClickerCost,
+                    clickUpgradeCost: this.clickUpgradeCost,
                     prestigeCost: this.prestigeCost,
-                    rebirthCost: this.rebirthCost,
+                    rebirthCount: this.rebirthCount,
+                    prestigeCount: this.prestigeCount,
+                    offlineEarningsUpgradeCost: this.offlineEarningsUpgradeCost,
                     chickenSkinCost: this.chickenSkinCost,
                     backgroundUpgradeCost: this.backgroundUpgradeCost,
-                    rebirthCount: this.rebirthCount,
                 };
                 localStorage.setItem("gameData", JSON.stringify(gameData));
             }
