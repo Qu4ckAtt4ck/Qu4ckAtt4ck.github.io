@@ -3,104 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clicker Game</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Chicken Clicker Game</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        button { margin: 10px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: white; padding: 20px; border-radius: 5px; width: 50%; margin: 10% auto; }
+    </style>
 </head>
 <body>
-    <h1>Placeable Uncooked Chicken Clicker</h1>
-    
-    <div class="stat">
-        <p>Clicks: <span id="clicks">0</span></p>
-        <p>Coins: <span id="coins">0</span></p>
-    </div>
+    <h1>Chicken Clicker Game</h1>
+    <div id="chickens">Chickens: 0</div>
+    <div id="clickPower">Click Power: 1</div>
+    <div id="autoClickers">Auto Clickers: 0</div>
+    <div id="offlineEarningsMultiplier">Offline Earnings Multiplier: 1</div>
 
-    <div class="ui-container">
-        <!-- Click Image Button -->
-        <img src="click-image.png" alt="Click Me" id="clickImage" class="clickable">
-        
-        <!-- Settings Button -->
-        <button class="settings-button" id="settingsButton">Settings</button>
-        
-        <!-- Shop Button -->
-        <button class="shop-button" id="shopButton">Cosmetic Shop</button>
-    </div>
+    <button id="buyAutoClicker">Buy Auto Clicker (Cost: 50 chickens)</button>
+    <button id="buyClickUpgrade">Buy Click Power Upgrade (Cost: 100 chickens)</button>
+    <button id="prestige">Prestige (Cost: 500 chickens)</button>
+    <button id="rebirth">Rebirth (Cost: 1000 chickens)</button>
 
     <!-- Cosmetic Shop Modal -->
-    <div id="cosmeticShopModal">
-        <div id="cosmeticShopContent">
+    <button id="shopButton">Open Cosmetic Shop</button>
+    <div id="cosmeticShopModal" class="modal">
+        <div class="modal-content">
             <h2>Cosmetic Shop</h2>
-            <p>Choose a cosmetic upgrade:</p>
-            <button id="buyCosmetic1">Buy Cosmetic 1</button>
-            <button id="buyCosmetic2">Buy Cosmetic 2</button>
-            <button id="closeShop">Close</button>
+            <button id="buyBackgroundUpgrade">Buy Background Upgrade (Cost: 100 chickens)</button>
+            <button id="buyChickenSkin">Buy Chicken Skin (Cost: 200 chickens)</button>
+            <button id="closeShop">Close Shop</button>
         </div>
     </div>
 
     <script>
-        // Game Logic Variables
-        let clicks = 0;
-        let coins = 0;
+        class Game {
+            constructor() {
+                this.chickens = 0;
+                this.clickPower = 1;
+                this.autoClickers = 0;
+                this.offlineEarningsMultiplier = 1; // Offline earnings multiplier
+                this.offlineEarningsUpgradeCost = 100; // Initial cost for offline earnings upgrade
+                this.clickUpgradeCost = 100;
+                this.autoClickerCost = 50;
+                this.prestigeCost = 500;
+                this.rebirthCost = 1000;
+                this.backgroundUpgradeCost = 100;
+                this.chickenSkinCost = 200;
+            }
 
-        // Elements
-        const clickImage = document.getElementById("clickImage");
-        const clicksDisplay = document.getElementById("clicks");
-        const coinsDisplay = document.getElementById("coins");
+            // Basic click function
+            click() {
+                this.chickens += this.clickPower;
+                this.updateUI();
+                this.saveGame();
+            }
 
-        const settingsButton = document.getElementById("settingsButton");
+            // Auto-clicker purchase
+            buyAutoClicker() {
+                if (this.chickens >= this.autoClickerCost) {
+                    this.chickens -= this.autoClickerCost;
+                    this.autoClickers++;
+                    this.autoClickerCost = Math.floor(this.autoClickerCost * 1.5);
+                    this.updateUI();
+                    this.saveGame();
+                }
+            }
+
+            // Click upgrade purchase
+            buyClickUpgrade() {
+                if (this.chickens >= this.clickUpgradeCost) {
+                    this.chickens -= this.clickUpgradeCost;
+                    this.clickPower++;
+                    this.clickUpgradeCost = Math.floor(this.clickUpgradeCost * 1.5);
+                    this.updateUI();
+                    this.saveGame();
+                }
+            }
+
+            // Prestige function
+            prestige() {
+                if (this.chickens >= this.prestigeCost) {
+                    this.chickens = 0;
+                    this.clickPower = 1;
+                    this.autoClickers = 0;
+                    this.prestigeCost = Math.floor(this.prestigeCost * 1.5);
+                    this.updateUI();
+                    this.saveGame();
+                }
+            }
+
+            // Rebirth function
+            rebirth() {
+                if (this.chickens >= this.rebirthCost) {
+                    this.chickens = 0;
+                    this.clickPower = 1;
+                    this.autoClickers = 0;
+                    this.rebirthCost = Math.floor(this.rebirthCost * 1.5);
+                    this.updateUI();
+                    this.saveGame();
+                }
+            }
+
+            // Purchase offline earnings upgrade
+            buyOfflineEarningsUpgrade() {
+                if (this.chickens >= this.offlineEarningsUpgradeCost) {
+                    this.chickens -= this.offlineEarningsUpgradeCost;
+                    this.offlineEarningsMultiplier *= 1.1;
+                    this.offlineEarningsUpgradeCost = Math.floor(this.offlineEarningsUpgradeCost * 1.5);
+                    this.updateUI();
+                    this.saveGame();
+                }
+            }
+
+            // Auto-generation function (for offline earnings)
+            autoGenerate() {
+                const offlineEarnings = this.autoClickers * this.offlineEarningsMultiplier;
+                this.chickens += offlineEarnings;
+                this.updateUI();
+            }
+
+            // Update UI elements
+            updateUI() {
+                document.getElementById("chickens").innerText = `Chickens: ${this.chickens}`;
+                document.getElementById("clickPower").innerText = `Click Power: ${this.clickPower}`;
+                document.getElementById("autoClickers").innerText = `Auto Clickers: ${this.autoClickers}`;
+                document.getElementById("offlineEarningsMultiplier").innerText = `Offline Earnings Multiplier: ${this.offlineEarningsMultiplier.toFixed(2)}`;
+            }
+
+            // Save game progress
+            saveGame() {
+                localStorage.setItem("chickens", this.chickens);
+                localStorage.setItem("clickPower", this.clickPower);
+                localStorage.setItem("autoClickers", this.autoClickers);
+                localStorage.setItem("offlineEarningsMultiplier", this.offlineEarningsMultiplier);
+            }
+
+            // Load saved game progress
+            loadGame() {
+                this.chickens = parseInt(localStorage.getItem("chickens") || "0");
+                this.clickPower = parseInt(localStorage.getItem("clickPower") || "1");
+                this.autoClickers = parseInt(localStorage.getItem("autoClickers") || "0");
+                this.offlineEarningsMultiplier = parseFloat(localStorage.getItem("offlineEarningsMultiplier") || "1");
+                this.updateUI();
+            }
+        }
+
+        // Initialize game
+        const game = new Game();
+        game.loadGame();
+
+        // Add event listeners to buttons
+        document.getElementById("clickImage").addEventListener("click", () => {
+            game.click();
+        });
+
+        document.getElementById("buyAutoClicker").addEventListener("click", () => {
+            game.buyAutoClicker();
+        });
+
+        document.getElementById("buyClickUpgrade").addEventListener("click", () => {
+            game.buyClickUpgrade();
+        });
+
+        document.getElementById("prestige").addEventListener("click", () => {
+            game.prestige();
+        });
+
+        document.getElementById("rebirth").addEventListener("click", () => {
+            game.rebirth();
+        });
+
+        document.getElementById("buyOfflineEarningsUpgrade").addEventListener("click", () => {
+            game.buyOfflineEarningsUpgrade();
+        });
+
+        // Cosmetic Shop Modal
         const shopButton = document.getElementById("shopButton");
         const cosmeticShopModal = document.getElementById("cosmeticShopModal");
         const closeShopButton = document.getElementById("closeShop");
 
-        const buyCosmetic1Button = document.getElementById("buyCosmetic1");
-        const buyCosmetic2Button = document.getElementById("buyCosmetic2");
-
-        // Update Display
-        function updateDisplay() {
-            clicksDisplay.textContent = clicks;
-            coinsDisplay.textContent = coins;
-        }
-
-        // Clicking Action
-        clickImage.addEventListener("click", function() {
-            clicks++;
-            coins += 5;
-            clickImage.classList.add('clicked');
-            setTimeout(() => clickImage.classList.remove('clicked'), 100); // Remove click animation
-            updateDisplay();
-        });
-
-        // Open/Close Shop Modal
-        shopButton.addEventListener("click", function() {
+        shopButton.addEventListener("click", () => {
             cosmeticShopModal.style.display = "block";
         });
 
-        closeShopButton.addEventListener("click", function() {
+        closeShopButton.addEventListener("click", () => {
             cosmeticShopModal.style.display = "none";
         });
 
-        // Cosmetic Purchase Logic
-        buyCosmetic1Button.addEventListener("click", function() {
-            if (coins >= 100) {
-                coins -= 100;
-                alert("Cosmetic 1 purchased!");
-                updateDisplay();
-            } else {
-                alert("Not enough coins!");
-            }
-        });
-
-        buyCosmetic2Button.addEventListener("click", function() {
-            if (coins >= 200) {
-                coins -= 200;
-                alert("Cosmetic 2 purchased!");
-                updateDisplay();
-            } else {
-                alert("Not enough coins!");
-            }
-        });
-
-        // Initialize Display
-        updateDisplay();
+        setInterval(() => {
+            game.autoGenerate();
+        }, 1000);
     </script>
 </body>
 </html>
