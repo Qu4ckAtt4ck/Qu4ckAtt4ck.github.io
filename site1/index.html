@@ -16,6 +16,7 @@
         .modal-header { font-size: 24px; margin-bottom: 20px; }
         .upgrade-button { background-color: #4CAF50; color: white; border: none; cursor: pointer; }
         .upgrade-button:hover { background-color: #45a049; }
+        #chickenImage { width: 100px; cursor: pointer; transition: transform 0.2s ease; }
     </style>
 </head>
 <body>
@@ -25,11 +26,16 @@
         <div id="chickens">Chickens: 0</div>
         <div id="clickPower">Click Power: 1</div>
         <div id="autoClickers">Auto Clickers: 0</div>
+        <div id="premiumChicken">Premium Chickens: 0</div>
         <div id="offlineEarningsMultiplier">Offline Earnings Multiplier: 1.0</div>
     </div>
 
+    <!-- Animated Chicken -->
+    <div>
+        <img id="chickenImage" src="chicken.png" alt="Chicken" onclick="game.clickChicken()" />
+    </div>
+
     <div class="button-container">
-        <button id="clickButton" class="upgrade-button">Click!</button>
         <button id="buyAutoClicker" class="upgrade-button">Buy Auto Clicker (Cost: 50 chickens)</button>
         <button id="buyClickUpgrade" class="upgrade-button">Buy Click Power Upgrade (Cost: 100 chickens)</button>
         <button id="prestige" class="upgrade-button">Prestige (Cost: 500 chickens)</button>
@@ -56,8 +62,8 @@
     <div id="shopModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">Cosmetic Shop</div>
-            <button id="buyChickenSkin" class="upgrade-button">Buy Chicken Skin (Cost: 200 chickens)</button>
-            <button id="buyBackground" class="upgrade-button">Buy Background (Cost: 100 chickens)</button>
+            <button id="buyChickenSkin" class="upgrade-button">Buy Chicken Skin (Cost: 100 Premium Chickens)</button>
+            <button id="buyBackground" class="upgrade-button">Buy Background (Cost: 100 Premium Chickens)</button>
             <button id="closeShop" class="upgrade-button">Close Shop</button>
         </div>
     </div>
@@ -66,6 +72,7 @@
         class Game {
             constructor() {
                 this.chickens = 0;
+                this.premiumChickens = 0;
                 this.clickPower = 1;
                 this.autoClickers = 0;
                 this.offlineEarningsMultiplier = 1.0;
@@ -74,12 +81,24 @@
                 this.autoClickerCost = 50;
                 this.prestigeCost = 500;
                 this.rebirthCost = 1000;
-                this.chickenSkinCost = 200;
+                this.chickenSkinCost = 100;
                 this.backgroundUpgradeCost = 100;
+                this.rebirthCount = 0;
             }
 
             click() {
                 this.chickens += this.clickPower;
+                this.updateUI();
+                this.saveGame();
+            }
+
+            clickChicken() {
+                const chickenImage = document.getElementById("chickenImage");
+                chickenImage.style.transform = "scale(1.1)";
+                setTimeout(() => {
+                    chickenImage.style.transform = "scale(1)";
+                }, 200);
+                this.chickens += 1;  // Each click gives 1 chicken
                 this.updateUI();
                 this.saveGame();
             }
@@ -110,6 +129,7 @@
                     this.clickPower = 1;
                     this.autoClickers = 0;
                     this.prestigeCost = Math.floor(this.prestigeCost * 1.5);
+                    this.rebirthCount++;
                     this.updateUI();
                     this.saveGame();
                 }
@@ -121,6 +141,8 @@
                     this.clickPower = 1;
                     this.autoClickers = 0;
                     this.rebirthCost = Math.floor(this.rebirthCost * 1.5);
+                    this.rebirthCount++;
+                    this.premiumChickens = Math.floor(this.rebirthCount / 100);
                     this.updateUI();
                     this.saveGame();
                 }
@@ -137,8 +159,8 @@
             }
 
             buyChickenSkin() {
-                if (this.chickens >= this.chickenSkinCost) {
-                    this.chickens -= this.chickenSkinCost;
+                if (this.premiumChickens >= this.chickenSkinCost) {
+                    this.premiumChickens -= this.chickenSkinCost;
                     alert("Chicken skin purchased!");
                     this.updateUI();
                     this.saveGame();
@@ -146,22 +168,17 @@
             }
 
             buyBackground() {
-                if (this.chickens >= this.backgroundUpgradeCost) {
-                    this.chickens -= this.backgroundUpgradeCost;
+                if (this.premiumChickens >= this.backgroundUpgradeCost) {
+                    this.premiumChickens -= this.backgroundUpgradeCost;
                     alert("Background purchased!");
                     this.updateUI();
                     this.saveGame();
                 }
             }
 
-            autoGenerate() {
-                const offlineEarnings = this.autoClickers * this.offlineEarningsMultiplier;
-                this.chickens += offlineEarnings;
-                this.updateUI();
-            }
-
             updateUI() {
                 document.getElementById("chickens").innerText = `Chickens: ${this.chickens}`;
+                document.getElementById("premiumChicken").innerText = `Premium Chickens: ${this.premiumChickens}`;
                 document.getElementById("clickPower").innerText = `Click Power: ${this.clickPower}`;
                 document.getElementById("autoClickers").innerText = `Auto Clickers: ${this.autoClickers}`;
                 document.getElementById("offlineEarningsMultiplier").innerText = `Offline Earnings Multiplier: ${this.offlineEarningsMultiplier.toFixed(2)}`;
@@ -170,6 +187,7 @@
             saveGame() {
                 const gameData = {
                     chickens: this.chickens,
+                    premiumChickens: this.premiumChickens,
                     clickPower: this.clickPower,
                     autoClickers: this.autoClickers,
                     offlineEarningsMultiplier: this.offlineEarningsMultiplier,
@@ -179,15 +197,10 @@
                     prestigeCost: this.prestigeCost,
                     rebirthCost: this.rebirthCost,
                     chickenSkinCost: this.chickenSkinCost,
-                    backgroundUpgradeCost: this.backgroundUpgradeCost
+                    backgroundUpgradeCost: this.backgroundUpgradeCost,
+                    rebirthCount: this.rebirthCount,
                 };
-                const blob = new Blob([JSON.stringify(gameData)], { type: "application/json" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = "chicken_clicker_save.json";
-                a.click();
-                URL.revokeObjectURL(url);
+                localStorage.setItem("gameData", JSON.stringify(gameData));
             }
 
             loadGame(file) {
@@ -195,6 +208,7 @@
                 reader.onload = (event) => {
                     const gameData = JSON.parse(event.target.result);
                     this.chickens = gameData.chickens;
+                    this.premiumChickens = gameData.premiumChickens;
                     this.clickPower = gameData.clickPower;
                     this.autoClickers = gameData.autoClickers;
                     this.offlineEarningsMultiplier = gameData.offlineEarningsMultiplier;
@@ -205,6 +219,7 @@
                     this.rebirthCost = gameData.rebirthCost;
                     this.chickenSkinCost = gameData.chickenSkinCost;
                     this.backgroundUpgradeCost = gameData.backgroundUpgradeCost;
+                    this.rebirthCount = gameData.rebirthCount;
                     this.updateUI();
                 };
                 reader.readAsText(file);
