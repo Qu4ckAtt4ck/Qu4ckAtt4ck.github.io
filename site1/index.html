@@ -24,7 +24,7 @@
     </style>
 </head>
 <body>
-    <h1>Placeable Uncooked Chicken Clicker</h1>
+    <h1>Chicken Clicker Game</h1>
     <div id="chickens">Chickens: 0</div>
     <div id="clickPower">Click Power: 1</div>
     <div id="autoClickers">Auto Clickers: 0</div>
@@ -38,14 +38,16 @@
     <!-- New Button for Offline Earnings Upgrade -->
     <button id="buyOfflineEarningsUpgrade" class="upgrade-button">Buy Offline Earnings Upgrade (Cost: 100 chickens)</button>
 
-    <!-- Cosmetic Shop Modal -->
-    <button id="shopButton" class="upgrade-button">Open Cosmetic Shop</button>
-    <div id="cosmeticShopModal" class="modal">
+    <!-- Settings Button -->
+    <button id="settingsButton" class="upgrade-button">Settings</button>
+
+    <!-- Settings Modal for Save/Load -->
+    <div id="settingsModal" class="modal">
         <div class="modal-content">
-            <h2>Cosmetic Shop</h2>
-            <button id="buyBackgroundUpgrade" class="upgrade-button">Buy Background Upgrade (Cost: 100 chickens)</button>
-            <button id="buyChickenSkin" class="upgrade-button">Buy Chicken Skin (Cost: 200 chickens)</button>
-            <button id="closeShop" class="upgrade-button">Close Shop</button>
+            <h2>Settings</h2>
+            <button id="saveGame" class="upgrade-button">Save Game</button>
+            <input type="file" id="loadGameFile" class="upgrade-button">
+            <button id="closeSettings" class="upgrade-button">Close Settings</button>
         </div>
     </div>
 
@@ -55,8 +57,8 @@
                 this.chickens = 0;
                 this.clickPower = 1;
                 this.autoClickers = 0;
-                this.offlineEarningsMultiplier = 1; // Offline earnings multiplier
-                this.offlineEarningsUpgradeCost = 100; // Initial cost for offline earnings upgrade
+                this.offlineEarningsMultiplier = 1;
+                this.offlineEarningsUpgradeCost = 100;
                 this.clickUpgradeCost = 100;
                 this.autoClickerCost = 50;
                 this.prestigeCost = 500;
@@ -65,14 +67,12 @@
                 this.chickenSkinCost = 200;
             }
 
-            // Basic click function
             click() {
                 this.chickens += this.clickPower;
                 this.updateUI();
                 this.saveGame();
             }
 
-            // Auto-clicker purchase
             buyAutoClicker() {
                 if (this.chickens >= this.autoClickerCost) {
                     this.chickens -= this.autoClickerCost;
@@ -83,7 +83,6 @@
                 }
             }
 
-            // Click upgrade purchase
             buyClickUpgrade() {
                 if (this.chickens >= this.clickUpgradeCost) {
                     this.chickens -= this.clickUpgradeCost;
@@ -94,7 +93,6 @@
                 }
             }
 
-            // Prestige function
             prestige() {
                 if (this.chickens >= this.prestigeCost) {
                     this.chickens = 0;
@@ -106,7 +104,6 @@
                 }
             }
 
-            // Rebirth function
             rebirth() {
                 if (this.chickens >= this.rebirthCost) {
                     this.chickens = 0;
@@ -118,7 +115,6 @@
                 }
             }
 
-            // Purchase offline earnings upgrade
             buyOfflineEarningsUpgrade() {
                 if (this.chickens >= this.offlineEarningsUpgradeCost) {
                     this.chickens -= this.offlineEarningsUpgradeCost;
@@ -129,14 +125,12 @@
                 }
             }
 
-            // Auto-generation function (for offline earnings)
             autoGenerate() {
                 const offlineEarnings = this.autoClickers * this.offlineEarningsMultiplier;
                 this.chickens += offlineEarnings;
                 this.updateUI();
             }
 
-            // Update UI elements
             updateUI() {
                 document.getElementById("chickens").innerText = `Chickens: ${this.chickens}`;
                 document.getElementById("clickPower").innerText = `Click Power: ${this.clickPower}`;
@@ -144,65 +138,72 @@
                 document.getElementById("offlineEarningsMultiplier").innerText = `Offline Earnings Multiplier: ${this.offlineEarningsMultiplier.toFixed(2)}`;
             }
 
-            // Save game progress
             saveGame() {
-                localStorage.setItem("chickens", this.chickens);
-                localStorage.setItem("clickPower", this.clickPower);
-                localStorage.setItem("autoClickers", this.autoClickers);
-                localStorage.setItem("offlineEarningsMultiplier", this.offlineEarningsMultiplier);
+                const gameData = {
+                    chickens: this.chickens,
+                    clickPower: this.clickPower,
+                    autoClickers: this.autoClickers,
+                    offlineEarningsMultiplier: this.offlineEarningsMultiplier,
+                    offlineEarningsUpgradeCost: this.offlineEarningsUpgradeCost,
+                    clickUpgradeCost: this.clickUpgradeCost,
+                    autoClickerCost: this.autoClickerCost,
+                    prestigeCost: this.prestigeCost,
+                    rebirthCost: this.rebirthCost
+                };
+                const blob = new Blob([JSON.stringify(gameData)], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "chicken_clicker_save.json";
+                a.click();
+                URL.revokeObjectURL(url);
             }
 
-            // Load saved game progress
-            loadGame() {
-                this.chickens = parseInt(localStorage.getItem("chickens") || "0");
-                this.clickPower = parseInt(localStorage.getItem("clickPower") || "1");
-                this.autoClickers = parseInt(localStorage.getItem("autoClickers") || "0");
-                this.offlineEarningsMultiplier = parseFloat(localStorage.getItem("offlineEarningsMultiplier") || "1");
-                this.updateUI();
+            loadGame(file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const gameData = JSON.parse(event.target.result);
+                    this.chickens = gameData.chickens;
+                    this.clickPower = gameData.clickPower;
+                    this.autoClickers = gameData.autoClickers;
+                    this.offlineEarningsMultiplier = gameData.offlineEarningsMultiplier;
+                    this.offlineEarningsUpgradeCost = gameData.offlineEarningsUpgradeCost;
+                    this.clickUpgradeCost = gameData.clickUpgradeCost;
+                    this.autoClickerCost = gameData.autoClickerCost;
+                    this.prestigeCost = gameData.prestigeCost;
+                    this.rebirthCost = gameData.rebirthCost;
+                    this.updateUI();
+                };
+                reader.readAsText(file);
             }
         }
 
-        // Initialize game
         const game = new Game();
-        game.loadGame();
+        game.updateUI();
 
-        // Add event listeners to buttons
-        document.getElementById("buyAutoClicker").addEventListener("click", () => {
-            game.buyAutoClicker();
+        document.getElementById("buyAutoClicker").addEventListener("click", () => game.buyAutoClicker());
+        document.getElementById("buyClickUpgrade").addEventListener("click", () => game.buyClickUpgrade());
+        document.getElementById("prestige").addEventListener("click", () => game.prestige());
+        document.getElementById("rebirth").addEventListener("click", () => game.rebirth());
+        document.getElementById("buyOfflineEarningsUpgrade").addEventListener("click", () => game.buyOfflineEarningsUpgrade());
+
+        document.getElementById("settingsButton").addEventListener("click", () => {
+            document.getElementById("settingsModal").style.display = "block";
         });
 
-        document.getElementById("buyClickUpgrade").addEventListener("click", () => {
-            game.buyClickUpgrade();
+        document.getElementById("closeSettings").addEventListener("click", () => {
+            document.getElementById("settingsModal").style.display = "none";
         });
 
-        document.getElementById("prestige").addEventListener("click", () => {
-            game.prestige();
+        document.getElementById("saveGame").addEventListener("click", () => game.saveGame());
+        document.getElementById("loadGameFile").addEventListener("change", (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                game.loadGame(file);
+            }
         });
 
-        document.getElementById("rebirth").addEventListener("click", () => {
-            game.rebirth();
-        });
-
-        document.getElementById("buyOfflineEarningsUpgrade").addEventListener("click", () => {
-            game.buyOfflineEarningsUpgrade();
-        });
-
-        // Cosmetic Shop Modal
-        const shopButton = document.getElementById("shopButton");
-        const cosmeticShopModal = document.getElementById("cosmeticShopModal");
-        const closeShopButton = document.getElementById("closeShop");
-
-        shopButton.addEventListener("click", () => {
-            cosmeticShopModal.style.display = "block";
-        });
-
-        closeShopButton.addEventListener("click", () => {
-            cosmeticShopModal.style.display = "none";
-        });
-
-        setInterval(() => {
-            game.autoGenerate();
-        }, 1000);
+        setInterval(() => game.autoGenerate(), 1000);
     </script>
 </body>
 </html>
