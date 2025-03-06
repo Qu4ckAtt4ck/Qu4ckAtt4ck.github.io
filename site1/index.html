@@ -3,27 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Endless Clicker Game</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Optional: Add your CSS file here -->
+    <title>Chicken Clicker Game</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Endless Clicker Game</h1>
+    <h1>Chicken Clicker Game</h1>
 
-    <div>
-        <p>Chickens: <span id="chickens">0</span></p>
-        <p>Click Power: <span id="clickPower">1</span></p>
-        <p>Auto Clickers: <span id="autoClickers">0</span></p>
-        <p>Offline Earnings: <span id="offlineEarnings">0</span></p>
+    <div class="game-info">
+        <div id="chickens">Chickens: 0</div>
+        <div id="clickPower">Click Power: 1</div>
+        <div id="autoClickers">Auto Clickers: 0</div>
+        <div id="premiumChicken">Premium Chickens: 0</div>
+        <div id="offlineEarningsMultiplier">Offline Earnings Multiplier: 1.0</div>
     </div>
 
+    <!-- Chicken Image -->
     <div>
-        <button id="clickButton">Click!</button>
-        <button id="buyAutoClicker">Buy Auto Clicker (Cost: <span id="autoClickerCost">10</span> chickens)</button>
-        <button id="buyClickUpgrade">Buy Click Power (Cost: <span id="clickUpgradeCost">50</span> dollars)</button>
-        <button id="prestige">Prestige (Cost: <span id="prestigeCost">1000</span> chickens)</button>
-        <button id="rebirth">Rebirth (Cost: <span id="rebirthCost">10000</span> presteiges)</button>
+        <img id="chickenImage" src="chicken.png" alt="Chicken" onclick="game.clickChicken()" />
     </div>
 
-    <script src="scripts/main.js"></script> <!-- Link to your main.js -->
+    <div class="button-container">
+        <button id="buyAutoClicker" class="upgrade-button">Buy Auto Clicker (Cost: 10 chickens)</button>
+        <button id="buyClickUpgrade" class="upgrade-button">Buy Click Power Upgrade (Cost: 50 chickens)</button>
+        <button id="prestige" class="upgrade-button">Prestige (Cost: 1000 chickens)</button>
+        <button id="rebirth" class="upgrade-button">Rebirth (Cost: 10 Prestiges)</button>
+        <button id="buyOfflineEarningsUpgrade" class="upgrade-button">Buy Offline Earnings Upgrade (Cost: 100 chickens)</button>
+    </div>
+
+    <div class="button-container">
+        <button id="settingsButton" class="upgrade-button">Settings</button>
+        <button id="shopButton" class="upgrade-button">Cosmetic Shop</button>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Settings</div>
+            <button id="saveGame" class="upgrade-button">Save Game</button>
+            <input type="file" id="loadGameFile" class="upgrade-button" />
+            <button id="closeSettings" class="upgrade-button">Close</button>
+        </div>
+    </div>
+
+    <!-- Cosmetic Shop Modal -->
+    <div id="shopModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Cosmetic Shop</div>
+            <button id="buyChickenSkin" class="upgrade-button">Buy Chicken Skin (Cost: 100 Premium Chickens)</button>
+            <button id="buyBackground" class="upgrade-button">Buy Background (Cost: 100 Premium Chickens)</button>
+            <button id="closeShop" class="upgrade-button">Close Shop</button>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
 </body>
 </html>
