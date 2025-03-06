@@ -9,28 +9,43 @@
         button { margin: 10px; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
         .modal-content { background-color: white; padding: 20px; border-radius: 5px; width: 50%; margin: 10% auto; }
+        .upgrade-button {
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .upgrade-button:hover {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
-    <h1>Placeble Uncooked Chicken CLicker</h1>
+    <h1>Chicken Clicker Game</h1>
     <div id="chickens">Chickens: 0</div>
     <div id="clickPower">Click Power: 1</div>
     <div id="autoClickers">Auto Clickers: 0</div>
     <div id="offlineEarningsMultiplier">Offline Earnings Multiplier: 1</div>
 
-    <button id="buyAutoClicker">Buy Auto Clicker (Cost: 50 chickens)</button>
-    <button id="buyClickUpgrade">Buy Click Power Upgrade (Cost: 100 chickens)</button>
-    <button id="prestige">Prestige (Cost: 500 chickens)</button>
-    <button id="rebirth">Rebirth (Cost: 1000 chickens)</button>
+    <button id="buyAutoClicker" class="upgrade-button">Buy Auto Clicker (Cost: 50 chickens)</button>
+    <button id="buyClickUpgrade" class="upgrade-button">Buy Click Power Upgrade (Cost: 100 chickens)</button>
+    <button id="prestige" class="upgrade-button">Prestige (Cost: 500 chickens)</button>
+    <button id="rebirth" class="upgrade-button">Rebirth (Cost: 1000 chickens)</button>
+
+    <!-- New Button for Offline Earnings Upgrade -->
+    <button id="buyOfflineEarningsUpgrade" class="upgrade-button">Buy Offline Earnings Upgrade (Cost: 100 chickens)</button>
 
     <!-- Cosmetic Shop Modal -->
-    <button id="shopButton">Open Cosmetic Shop</button>
+    <button id="shopButton" class="upgrade-button">Open Cosmetic Shop</button>
     <div id="cosmeticShopModal" class="modal">
         <div class="modal-content">
             <h2>Cosmetic Shop</h2>
-            <button id="buyBackgroundUpgrade">Buy Background Upgrade (Cost: 100 chickens)</button>
-            <button id="buyChickenSkin">Buy Chicken Skin (Cost: 200 chickens)</button>
-            <button id="closeShop">Close Shop</button>
+            <button id="buyBackgroundUpgrade" class="upgrade-button">Buy Background Upgrade (Cost: 100 chickens)</button>
+            <button id="buyChickenSkin" class="upgrade-button">Buy Chicken Skin (Cost: 200 chickens)</button>
+            <button id="closeShop" class="upgrade-button">Close Shop</button>
         </div>
     </div>
 
@@ -152,10 +167,6 @@
         game.loadGame();
 
         // Add event listeners to buttons
-        document.getElementById("clickImage").addEventListener("click", () => {
-            game.click();
-        });
-
         document.getElementById("buyAutoClicker").addEventListener("click", () => {
             game.buyAutoClicker();
         });
