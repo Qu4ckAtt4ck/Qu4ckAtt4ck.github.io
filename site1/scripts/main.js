@@ -7,11 +7,11 @@ class Game {
         this.offlineEarningsMultiplier = 1;
         this.autoClickerCost = 10;
         this.clickUpgradeCost = 50;
-        this.prestigeCost = 100;
-        this.rebirthCost = 500;
+        this.prestigeCost = 1000;
+        this.rebirthCost = 10;
         this.rebirthCount = 0;
         this.prestigeCount = 0;
-        this.offlineEarningsUpgradeCost = 200;
+        this.offlineEarningsUpgradeCost = 100;
     }
 
     updateUI() {
@@ -68,7 +68,7 @@ class Game {
     }
 
     rebirth() {
-        if (this.chickens >= this.rebirthCost) {
+        if (this.prestigeCount >= this.rebirthCost) {
             this.chickens = 0;
             this.rebirthCount++;
             this.rebirthCost = Math.floor(this.rebirthCost * 2); // Increase rebirth cost
