@@ -1,3 +1,4 @@
+// Only declare the class once
 class Game {
     constructor() {
         // Initialize game variables
