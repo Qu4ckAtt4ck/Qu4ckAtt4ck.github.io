@@ -41,6 +41,10 @@ button {
     text-align: center;
 }
 
+.modal-footer {
+    text-align: right;
+}
+
 .modal-content button {
     margin: 10px;
 }
@@ -76,4 +80,14 @@ button {
 
 #chickenImage:hover {
     transform: scale(1.1);
+}
+
+/* Additional styles for the update modal */
+#updateList {
+    list-style-type: none;
+    padding: 0;
+}
+
+#updateList li {
+    margin: 10px 0;
 }
