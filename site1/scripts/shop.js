@@ -2,8 +2,16 @@ function setupShop(getChickens, spendChickens) {
     const shop = document.getElementById("shop");
 
     const items = [
-        { name: "Auto Clicker", cost: 10, effect: () => setInterval(() => increaseChickens(1), 1000) },
-        { name: "Bigger Chickens", cost: 50, effect: () => alert("Your chickens are now bigger!") }
+        {
+            name: "Auto Clicker", 
+            cost: 10, 
+            effect: () => setInterval(() => increaseChickens(1), 1000)
+        },
+        {
+            name: "Bigger Chickens", 
+            cost: 50, 
+            effect: () => alert("Your chickens are now bigger!")
+        }
     ];
 
     items.forEach(item => {
