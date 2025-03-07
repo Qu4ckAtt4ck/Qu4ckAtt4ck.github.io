@@ -1,4 +1,3 @@
-// Only declare the class once
 class Game {
     constructor() {
         // Initialize game variables
@@ -18,23 +17,41 @@ class Game {
 
     // Function to update the UI with current game data
     updateUI() {
-        document.getElementById("chickens").textContent = `Chickens: ${this.chickens}`;
-        document.getElementById("premiumChickens").textContent = `Premium Chickens: ${this.premiumChickens}`;
-        document.getElementById("clickPower").textContent = `Click Power: ${this.clickPower}`;
-        document.getElementById("autoClickers").textContent = `Auto Clickers: ${this.autoClickers}`;
-        document.getElementById("offlineEarningsMultiplier").textContent = `Offline Earnings Multiplier: ${this.offlineEarningsMultiplier}`;
-        
-        // Dynamically update the cost labels
+        const chickensElem = document.getElementById("chickens");
+        if (chickensElem) chickensElem.textContent = `Chickens: ${this.chickens}`;
+
+        const premiumElem = document.getElementById("premiumChickens");
+        if (premiumElem) premiumElem.textContent = `Premium Chickens: ${this.premiumChickens}`;
+
+        const clickPowerElem = document.getElementById("clickPower");
+        if (clickPowerElem) clickPowerElem.textContent = `Click Power: ${this.clickPower}`;
+
+        const autoClickersElem = document.getElementById("autoClickers");
+        if (autoClickersElem) autoClickersElem.textContent = `Auto Clickers: ${this.autoClickers}`;
+
+        const offlineMultElem = document.getElementById("offlineEarningsMultiplier");
+        if (offlineMultElem) offlineMultElem.textContent = `Offline Earnings Multiplier: ${this.offlineEarningsMultiplier}`;
+
+        // Update cost labels if they exist
         this.updateCostText();
     }
 
     // Function to dynamically update cost labels for upgrades
     updateCostText() {
-        document.getElementById("autoClickerCost").textContent = `Auto Clicker Cost: ${this.autoClickerCost} chickens`;
-        document.getElementById("clickUpgradeCost").textContent = `Click Upgrade Cost: ${this.clickUpgradeCost} chickens`;
-        document.getElementById("prestigeCost").textContent = `Prestige Cost: ${this.prestigeCost} chickens`;
-        document.getElementById("rebirthCost").textContent = `Rebirth Cost: ${this.rebirthCost} Prestiges`;
-        document.getElementById("offlineEarningsUpgradeCost").textContent = `Offline Earnings Upgrade Cost: ${this.offlineEarningsUpgradeCost} chickens`;
+        const autoClickerCostElem = document.getElementById("autoClickerCost");
+        if (autoClickerCostElem) autoClickerCostElem.textContent = `Auto Clicker Cost: ${this.autoClickerCost} chickens`;
+
+        const clickUpgradeCostElem = document.getElementById("clickUpgradeCost");
+        if (clickUpgradeCostElem) clickUpgradeCostElem.textContent = `Click Upgrade Cost: ${this.clickUpgradeCost} chickens`;
+
+        const prestigeCostElem = document.getElementById("prestigeCost");
+        if (prestigeCostElem) prestigeCostElem.textContent = `Prestige Cost: ${this.prestigeCost} chickens`;
+
+        const rebirthCostElem = document.getElementById("rebirthCost");
+        if (rebirthCostElem) rebirthCostElem.textContent = `Rebirth Cost: ${this.rebirthCost} Prestiges`;
+
+        const offlineEarningsUpgradeCostElem = document.getElementById("offlineEarningsUpgradeCost");
+        if (offlineEarningsUpgradeCostElem) offlineEarningsUpgradeCostElem.textContent = `Offline Earnings Upgrade Cost: ${this.offlineEarningsUpgradeCost} chickens`;
     }
 
     // Function to "click" and add chickens
@@ -132,10 +149,10 @@ class Game {
                 this.updateUI();
             } catch (e) {
                 console.error("Failed to load saved game:", e);
-                this.resetGame(); // Reset to default values if loading fails
+                this.resetGame();
             }
         } else {
-            this.resetGame(); // No saved game, load defaults
+            this.resetGame();
         }
     }
 
@@ -167,17 +184,15 @@ document.getElementById("buyClickUpgrade").addEventListener("click", () => game.
 document.getElementById("prestige").addEventListener("click", () => game.prestige());
 document.getElementById("rebirth").addEventListener("click", () => game.rebirth());
 document.getElementById("buyOfflineEarningsUpgrade").addEventListener("click", () => game.buyOfflineEarningsUpgrade());
-document.getElementById("clickChicken").addEventListener("click", () => game.clickChicken()); // Add this line for the clickChicken button
+document.getElementById("clickChicken").addEventListener("click", () => game.clickChicken());
 
-// Settings Modal Handling
+// Modal Handling
 document.getElementById("settingsButton").addEventListener("click", () => {
     document.getElementById("settingsModal").style.display = "block";
 });
 document.getElementById("closeSettings").addEventListener("click", () => {
     document.getElementById("settingsModal").style.display = "none";
 });
-
-// Shop Modal Handling
 document.getElementById("shopButton").addEventListener("click", () => {
     document.getElementById("shopModal").style.display = "block";
 });
@@ -188,4 +203,4 @@ document.getElementById("closeShop").addEventListener("click", () => {
 // Periodically save game data every 10 seconds (to prevent data loss)
 setInterval(() => {
     game.saveGame();
-}, 10000); // Save every 10 seconds
+}, 10000);
