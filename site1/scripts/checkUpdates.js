@@ -1,104 +1,73 @@
-// Function to generate the SHA-256 hash of a string
-async function generateSHA256Hash(text) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(text);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer)); // Convert buffer to byte array
-    const hashHex = hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
-    return hashHex;
+// Define the files to be checked for changes
+const filesToCheck = [
+    'index.html',         // Adding index.html to the list
+    'scripts/main.js',
+    'scripts/shop.js',
+    'styles.css',
+    'chicken.png'
+];
+
+// This will store the initial state (hashes) of the files when first loaded
+let initialHashes = {};
+
+// Function to get the file hash
+async function getFileHash(fileUrl) {
+    const response = await fetch(fileUrl, { cache: "no-store" });
+    const fileBlob = await response.blob();
+    const buffer = await fileBlob.arrayBuffer();
+    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+    return Array.from(new Uint8Array(hashBuffer)).map(byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
-// Function to fetch file content (you can adjust the URL for your specific files)
-async function fetchFileContent(url) {
-    const response = await fetch(url);
-    if (response.ok) {
-        return await response.text();
-    }
-    return null;
+// Function to show the modal with the file update message
+function showUpdateModal(fileName) {
+    const modal = document.getElementById('updateModal');
+    const modalMessage = document.getElementById('updateMessage');
+    modalMessage.textContent = `File updated: ${fileName}`;
+    modal.style.display = 'block';
 }
 
-// Function to fetch image file content and convert to base64 (used for chicken.png)
-async function fetchImageContent(url) {
-    const response = await fetch(url);
-    if (response.ok) {
-        const blob = await response.blob();
-        const reader = new FileReader();
-        return new Promise((resolve, reject) => {
-            reader.onloadend = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-        });
-    }
-    return null;
-}
-
-// Function to check if any of the files have changed
+// Function to check if files have been updated
 async function checkForFileChanges() {
-    const files = [
-        { url: '../index.html', isImage: false }, // Relative path from /scripts
-        { url: '../chicken.png', isImage: true }, // Relative path from /scripts
-        { url: '../styles.css', isImage: false }, // Relative path from /scripts
-        { url: 'main.js', isImage: false }, // Current file itself
-        { url: 'shop.js', isImage: false } // Current file itself
-    ];
-
-    let changedFiles = [];
-    for (let file of files) {
-        const fileUrl = file.url;
-        const previousHash = localStorage.getItem(`previousHash-${fileUrl}`);
-
-        let currentContent = file.isImage ? await fetchImageContent(fileUrl) : await fetchFileContent(fileUrl);
-
-        if (currentContent) {
-            const currentHash = await generateSHA256Hash(currentContent);
-
-            // Compare the current hash with the saved one
-            if (previousHash && previousHash !== currentHash) {
-                changedFiles.push(fileUrl);
-                console.log(`${fileUrl} has changed!`);
+    let fileUpdated = false;
+    
+    for (const file of filesToCheck) {
+        try {
+            const fileHash = await getFileHash(file);
+            
+            // If the file hash is different from the stored one, it means the file has changed
+            if (initialHashes[file] && initialHashes[file] !== fileHash) {
+                console.log(`File updated: ${file}`);
+                showUpdateModal(file);  // Show the modal with the updated file
+                fileUpdated = true;
             }
-
-            // Save the current hash to localStorage for future comparison
-            localStorage.setItem(`previousHash-${fileUrl}`, currentHash);
-        } else {
-            console.error(`Failed to load the file: ${fileUrl}`);
+            
+            // Store the new hash for the file
+            initialHashes[file] = fileHash;
+        } catch (error) {
+            console.error(`Error checking file: ${file}`, error);
         }
     }
 
-    if (changedFiles.length > 0) {
-        showUpdateModal(changedFiles);
+    if (!fileUpdated) {
+        console.log('No file updates detected.');
     }
 }
 
-// Function to show the update modal with the list of updated files
-function showUpdateModal(updatedFiles) {
-    const updateList = document.getElementById("updateList");
-    updateList.innerHTML = ''; // Clear any existing content
-    updatedFiles.forEach(file => {
-        const listItem = document.createElement('li');
-        listItem.textContent = `${file} has been updated.`;
-        updateList.appendChild(listItem);
-    });
-
-    const modal = document.getElementById("updateModal");
-    modal.style.display = "block";
-
-    // Close the modal when the close button is clicked
-    const closeBtn = document.getElementById("closeModalBtn");
-    closeBtn.onclick = function() {
-        modal.style.display = "none";
-    }
-
-    // Close the modal when clicking outside the modal content
-    window.onclick = function(event) {
-        if (event.target === modal) {
-            modal.style.display = "none";
+// Initial setup: Store the initial hashes of the files when the page first loads
+async function initializeFileHashes() {
+    for (const file of filesToCheck) {
+        try {
+            const fileHash = await getFileHash(file);
+            initialHashes[file] = fileHash;
+        } catch (error) {
+            console.error(`Error initializing file: ${file}`, error);
         }
     }
-}
 
-// Run the check when the page loads
-window.onload = () => {
+    // Now that the initial hashes are stored, check for file updates
     checkForFileChanges();
-};
+}
 
+// Call the initialization function on page load/reload
+initializeFileHashes();
