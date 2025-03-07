@@ -23,11 +23,11 @@
     </div>
 
     <div class="button-container">
-        <button id="buyAutoClicker" class="upgrade-button">Buy Auto Clicker (Cost: 10 chickens)</button>
-        <button id="buyClickUpgrade" class="upgrade-button">Buy Click Power Upgrade (Cost: 50 chickens)</button>
-        <button id="prestige" class="upgrade-button">Prestige (Cost: 1000 chickens)</button>
-        <button id="rebirth" class="upgrade-button">Rebirth (Cost: 10 Prestiges)</button>
-        <button id="buyOfflineEarningsUpgrade" class="upgrade-button">Buy Offline Earnings Upgrade (Cost: 100 chickens)</button>
+        <button id="buyAutoClicker" class="upgrade-button">Buy Auto Clicker</button>
+        <button id="buyClickUpgrade" class="upgrade-button">Buy Click Power Upgrade</button>
+        <button id="prestige" class="upgrade-button">Prestige</button>
+        <button id="rebirth" class="upgrade-button">Rebirth</button>
+        <button id="buyOfflineEarningsUpgrade" class="upgrade-button">Buy Offline Earnings Upgrade</button>
     </div>
 
     <div class="button-container">
@@ -49,69 +49,14 @@
     <div id="shopModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">Cosmetic Shop</div>
-            <button id="buyChickenSkin" class="upgrade-button">Buy Chicken Skin (Cost: 100 Premium Chickens)</button>
-            <button id="buyBackground" class="upgrade-button">Buy Background (Cost: 100 Premium Chickens)</button>
+            <button id="buyChickenSkin" class="upgrade-button">Buy Chicken Skin</button>
+            <button id="buyBackground" class="upgrade-button">Buy Background</button>
             <button id="closeShop" class="upgrade-button">Close Shop</button>
         </div>
     </div>
 
     <script>
-        // Basic game object initialization
-        const game = {
-            chickens: 0,
-            clickPower: 1,
-            autoClickers: 0,
-            premiumChickens: 0,
-            offlineEarningsMultiplier: 1.0,
-            clickChicken() {
-                this.chickens += this.clickPower;
-                document.getElementById("chickens").textContent = "Chickens: " + this.chickens;
-            },
-            buyAutoClicker() {
-                if (this.chickens >= 10) {
-                    this.chickens -= 10;
-                    this.autoClickers += 1;
-                    document.getElementById("autoClickers").textContent = "Auto Clickers: " + this.autoClickers;
-                    document.getElementById("chickens").textContent = "Chickens: " + this.chickens;
-                }
-            },
-            buyClickUpgrade() {
-                if (this.chickens >= 50) {
-                    this.chickens -= 50;
-                    this.clickPower += 1;
-                    document.getElementById("clickPower").textContent = "Click Power: " + this.clickPower;
-                    document.getElementById("chickens").textContent = "Chickens: " + this.chickens;
-                }
-            }
-        };
-
-        // Modal controls
-        const settingsModal = document.getElementById("settingsModal");
-        const shopModal = document.getElementById("shopModal");
-
-        document.getElementById("settingsButton").addEventListener("click", () => {
-            settingsModal.style.display = "block";
-        });
-
-        document.getElementById("shopButton").addEventListener("click", () => {
-            shopModal.style.display = "block";
-        });
-
-        document.getElementById("closeSettings").addEventListener("click", () => {
-            settingsModal.style.display = "none";
-        });
-
-        document.getElementById("closeShop").addEventListener("click", () => {
-            shopModal.style.display = "none";
-        });
-
-        document.getElementById("buyAutoClicker").addEventListener("click", () => {
-            game.buyAutoClicker();
-        });
-
-        document.getElementById("buyClickUpgrade").addEventListener("click", () => {
-            game.buyClickUpgrade();
-        });
+        // Your game logic here, no changes in the HTML beyond the button texts
     </script>
 
     <script src="main.js"></script>
