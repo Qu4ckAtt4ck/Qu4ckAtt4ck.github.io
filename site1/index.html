@@ -55,6 +55,65 @@
         </div>
     </div>
 
+    <script>
+        // Basic game object initialization
+        const game = {
+            chickens: 0,
+            clickPower: 1,
+            autoClickers: 0,
+            premiumChickens: 0,
+            offlineEarningsMultiplier: 1.0,
+            clickChicken() {
+                this.chickens += this.clickPower;
+                document.getElementById("chickens").textContent = "Chickens: " + this.chickens;
+            },
+            buyAutoClicker() {
+                if (this.chickens >= 10) {
+                    this.chickens -= 10;
+                    this.autoClickers += 1;
+                    document.getElementById("autoClickers").textContent = "Auto Clickers: " + this.autoClickers;
+                    document.getElementById("chickens").textContent = "Chickens: " + this.chickens;
+                }
+            },
+            buyClickUpgrade() {
+                if (this.chickens >= 50) {
+                    this.chickens -= 50;
+                    this.clickPower += 1;
+                    document.getElementById("clickPower").textContent = "Click Power: " + this.clickPower;
+                    document.getElementById("chickens").textContent = "Chickens: " + this.chickens;
+                }
+            }
+        };
+
+        // Modal controls
+        const settingsModal = document.getElementById("settingsModal");
+        const shopModal = document.getElementById("shopModal");
+
+        document.getElementById("settingsButton").addEventListener("click", () => {
+            settingsModal.style.display = "block";
+        });
+
+        document.getElementById("shopButton").addEventListener("click", () => {
+            shopModal.style.display = "block";
+        });
+
+        document.getElementById("closeSettings").addEventListener("click", () => {
+            settingsModal.style.display = "none";
+        });
+
+        document.getElementById("closeShop").addEventListener("click", () => {
+            shopModal.style.display = "none";
+        });
+
+        document.getElementById("buyAutoClicker").addEventListener("click", () => {
+            game.buyAutoClicker();
+        });
+
+        document.getElementById("buyClickUpgrade").addEventListener("click", () => {
+            game.buyClickUpgrade();
+        });
+    </script>
+
     <script src="main.js"></script>
 </body>
 </html>
