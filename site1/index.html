@@ -7,6 +7,17 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Update Files Modal -->
+    <div id="updateModal" class="modal">
+        <div class="modal-content">
+            <h4>Files Updated</h4>
+            <ul id="updateList"></ul>
+        </div>
+        <div class="modal-footer">
+            <button id="closeModalBtn" class="upgrade-button">Close</button>
+        </div>
+    </div>
+
     <h1>Chicken Clicker Game</h1>
 
     <div class="game-info">
@@ -55,10 +66,7 @@
         </div>
     </div>
 
-    <script>
-        // Your game logic here, no changes in the HTML beyond the button texts
-    </script>
-
     <script src="main.js"></script>
+    <script src="scripts/checkUpdates.js"></script>
 </body>
 </html>
