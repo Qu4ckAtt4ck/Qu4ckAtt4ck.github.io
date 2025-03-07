@@ -21,12 +21,17 @@ class Game {
         document.getElementById("autoClickers").textContent = `Auto Clickers: ${this.autoClickers}`;
         document.getElementById("offlineEarningsMultiplier").textContent = `Offline Earnings Multiplier: ${this.offlineEarningsMultiplier}`;
         
-        // Update the costs
-        document.getElementById("autoClickerCost").textContent = `Auto Clicker Cost: ${this.autoClickerCost}`;
-        document.getElementById("clickUpgradeCost").textContent = `Click Upgrade Cost: ${this.clickUpgradeCost}`;
-        document.getElementById("prestigeCost").textContent = `Prestige Cost: ${this.prestigeCost}`;
-        document.getElementById("rebirthCost").textContent = `Rebirth Cost: ${this.rebirthCost}`;
-        document.getElementById("offlineEarningsUpgradeCost").textContent = `Offline Earnings Upgrade Cost: ${this.offlineEarningsUpgradeCost}`;
+        // Update the costs dynamically
+        this.updateCostText();
+    }
+
+    // Function to dynamically update cost labels
+    updateCostText() {
+        document.getElementById("autoClickerCost").textContent = `Auto Clicker Cost: ${this.autoClickerCost} chickens`;
+        document.getElementById("clickUpgradeCost").textContent = `Click Upgrade Cost: ${this.clickUpgradeCost} chickens`;
+        document.getElementById("prestigeCost").textContent = `Prestige Cost: ${this.prestigeCost} chickens`;
+        document.getElementById("rebirthCost").textContent = `Rebirth Cost: ${this.rebirthCost} Prestiges`;
+        document.getElementById("offlineEarningsUpgradeCost").textContent = `Offline Earnings Upgrade Cost: ${this.offlineEarningsUpgradeCost} chickens`;
     }
 
     // Offline Earnings Upgrade
