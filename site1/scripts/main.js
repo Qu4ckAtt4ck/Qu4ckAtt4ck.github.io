@@ -32,7 +32,7 @@ class Game {
         const offlineMultElem = document.getElementById("offlineEarningsMultiplier");
         if (offlineMultElem) offlineMultElem.textContent = `Offline Earnings Multiplier: ${this.offlineEarningsMultiplier}`;
 
-        // Update cost labels if they exist
+        // Update cost labels (if these elements exist)
         this.updateCostText();
     }
 
@@ -149,10 +149,10 @@ class Game {
                 this.updateUI();
             } catch (e) {
                 console.error("Failed to load saved game:", e);
-                this.resetGame();
+                this.resetGame(); // Reset to default values if loading fails
             }
         } else {
-            this.resetGame();
+            this.resetGame(); // No saved game, load defaults
         }
     }
 
