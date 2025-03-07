@@ -115,20 +115,44 @@ class Game {
     loadGame() {
         const savedGame = localStorage.getItem('chickenClickerSave');
         if (savedGame) {
-            const gameData = JSON.parse(savedGame);
-            this.chickens = gameData.chickens;
-            this.premiumChickens = gameData.premiumChickens;
-            this.clickPower = gameData.clickPower;
-            this.autoClickers = gameData.autoClickers;
-            this.offlineEarningsMultiplier = gameData.offlineEarningsMultiplier;
-            this.autoClickerCost = gameData.autoClickerCost;
-            this.clickUpgradeCost = gameData.clickUpgradeCost;
-            this.prestigeCost = gameData.prestigeCost;
-            this.rebirthCount = gameData.rebirthCount;
-            this.prestigeCount = gameData.prestigeCount;
-            this.offlineEarningsUpgradeCost = gameData.offlineEarningsUpgradeCost;
-            this.updateUI();
+            try {
+                const gameData = JSON.parse(savedGame);
+                this.chickens = gameData.chickens;
+                this.premiumChickens = gameData.premiumChickens;
+                this.clickPower = gameData.clickPower;
+                this.autoClickers = gameData.autoClickers;
+                this.offlineEarningsMultiplier = gameData.offlineEarningsMultiplier;
+                this.autoClickerCost = gameData.autoClickerCost;
+                this.clickUpgradeCost = gameData.clickUpgradeCost;
+                this.prestigeCost = gameData.prestigeCost;
+                this.rebirthCount = gameData.rebirthCount;
+                this.prestigeCount = gameData.prestigeCount;
+                this.offlineEarningsUpgradeCost = gameData.offlineEarningsUpgradeCost;
+                this.updateUI();
+            } catch (e) {
+                console.error("Failed to load saved game:", e);
+                this.resetGame(); // Reset to default values if loading fails
+            }
+        } else {
+            this.resetGame(); // No saved game, load defaults
         }
+    }
+
+    // Reset the game to its initial state
+    resetGame() {
+        this.chickens = 0;
+        this.premiumChickens = 0;
+        this.clickPower = 1;
+        this.autoClickers = 0;
+        this.offlineEarningsMultiplier = 1;
+        this.autoClickerCost = 10;
+        this.clickUpgradeCost = 50;
+        this.prestigeCost = 1000;
+        this.rebirthCost = 10;
+        this.rebirthCount = 0;
+        this.prestigeCount = 0;
+        this.offlineEarningsUpgradeCost = 100;
+        this.updateUI();
     }
 }
 
@@ -136,29 +160,29 @@ class Game {
 const game = new Game();
 game.loadGame();
 
-// Button Click Handlers
-document.getElementById("buyAutoClicker").onclick = () => game.buyAutoClicker();
-document.getElementById("buyClickUpgrade").onclick = () => game.buyClickUpgrade();
-document.getElementById("prestige").onclick = () => game.prestige();
-document.getElementById("rebirth").onclick = () => game.rebirth();
-document.getElementById("buyOfflineEarningsUpgrade").onclick = () => game.buyOfflineEarningsUpgrade();
-document.getElementById("clickChicken").onclick = () => game.clickChicken(); // Add this line for the clickChicken button
+// Button Click Handlers with Event Listeners
+document.getElementById("buyAutoClicker").addEventListener("click", () => game.buyAutoClicker());
+document.getElementById("buyClickUpgrade").addEventListener("click", () => game.buyClickUpgrade());
+document.getElementById("prestige").addEventListener("click", () => game.prestige());
+document.getElementById("rebirth").addEventListener("click", () => game.rebirth());
+document.getElementById("buyOfflineEarningsUpgrade").addEventListener("click", () => game.buyOfflineEarningsUpgrade());
+document.getElementById("clickChicken").addEventListener("click", () => game.clickChicken()); // Add this line for the clickChicken button
 
 // Settings Modal Handling
-document.getElementById("settingsButton").onclick = () => {
+document.getElementById("settingsButton").addEventListener("click", () => {
     document.getElementById("settingsModal").style.display = "block";
-};
-document.getElementById("closeSettings").onclick = () => {
+});
+document.getElementById("closeSettings").addEventListener("click", () => {
     document.getElementById("settingsModal").style.display = "none";
-};
+});
 
 // Shop Modal Handling
-document.getElementById("shopButton").onclick = () => {
+document.getElementById("shopButton").addEventListener("click", () => {
     document.getElementById("shopModal").style.display = "block";
-};
-document.getElementById("closeShop").onclick = () => {
+});
+document.getElementById("closeShop").addEventListener("click", () => {
     document.getElementById("shopModal").style.display = "none";
-};
+});
 
 // Periodically save game data every 10 seconds (to prevent data loss)
 setInterval(() => {
