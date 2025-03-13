@@ -14,20 +14,22 @@
         <div id="clickPower">Click Power: 1</div>
         <div id="autoClickers">Auto Clickers: 0</div>
         <div id="premiumChicken">Premium Chickens: 0</div>
+        <div id="prestigeCount">Prestige Level: 0</div>
+        <div id="rebirthCount">Rebirth Level: 0</div>
         <div id="offlineEarningsMultiplier">Offline Earnings Multiplier: 1.0</div>
     </div>
 
     <!-- Chicken Image -->
     <div>
-        <img id="chickenImage" src="chicken.png" alt="Chicken" onclick="game.clickChicken()" />
+        <img id="chickenImage" src="chicken.png" alt="Chicken" />
     </div>
 
     <div class="button-container">
-        <button id="buyAutoClicker" class="upgrade-button">Buy Auto Clicker</button>
-        <button id="buyClickUpgrade" class="upgrade-button">Buy Click Power Upgrade</button>
-        <button id="prestige" class="upgrade-button">Prestige</button>
-        <button id="rebirth" class="upgrade-button">Rebirth</button>
-        <button id="buyOfflineEarningsUpgrade" class="upgrade-button">Buy Offline Earnings Upgrade</button>
+        <button id="buyAutoClicker" class="upgrade-button">Buy Auto Clicker (<span id="autoClickerCost">10</span> chickens)</button>
+        <button id="buyClickUpgrade" class="upgrade-button">Buy Click Power Upgrade (<span id="clickUpgradeCost">50</span> chickens)</button>
+        <button id="prestige" class="upgrade-button">Prestige (<span id="prestigeCost">1000</span> chickens)</button>
+        <button id="rebirth" class="upgrade-button">Rebirth (<span id="rebirthCost">10</span> prestiges)</button>
+        <button id="buyOfflineEarningsUpgrade" class="upgrade-button">Buy Offline Earnings Upgrade (<span id="offlineEarningsUpgradeCost">100</span> chickens)</button>
     </div>
 
     <div class="button-container">
@@ -39,8 +41,13 @@
     <div id="settingsModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">Settings</div>
-            <button id="saveGame" class="upgrade-button">Save Game</button>
-            <input type="file" id="loadGameFile" class="upgrade-button" />
+            <button id="saveGameBtn" class="upgrade-button">Save Game</button>
+            <button id="resetGameBtn" class="upgrade-button">Reset Game</button>
+            <button id="exportGameBtn" class="upgrade-button">Export Save</button>
+            <div class="import-container">
+                <input type="file" id="loadGameFile" class="file-input" />
+                <button id="importGameBtn" class="upgrade-button">Import Save</button>
+            </div>
             <button id="closeSettings" class="upgrade-button">Close</button>
         </div>
     </div>
@@ -49,8 +56,12 @@
     <div id="shopModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">Cosmetic Shop</div>
-            <button id="buyChickenSkin" class="upgrade-button">Buy Chicken Skin</button>
-            <button id="buyBackground" class="upgrade-button">Buy Background</button>
+            <div id="shopItems">
+                <!-- Shop items will be dynamically added here -->
+                <button id="buyRedChicken" class="upgrade-button">Red Chicken (100 chickens)</button>
+                <button id="buyGoldenChicken" class="upgrade-button">Golden Chicken (1000 chickens)</button>
+                <button id="buyRainbowBackground" class="upgrade-button">Rainbow Background (500 chickens)</button>
+            </div>
             <button id="closeShop" class="upgrade-button">Close Shop</button>
         </div>
     </div>
