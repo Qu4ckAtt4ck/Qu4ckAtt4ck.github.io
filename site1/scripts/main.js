@@ -1,118 +1,5 @@
-class Game {
-    constructor() {
-        // Initialize game variables
-        this.chickens = 0;
-        this.premiumChickens = 0;
-        this.clickPower = 1;
-        this.autoClickers = 0;
-        this.offlineEarningsMultiplier = 1;
-        this.autoClickerCost = 10;
-        this.clickUpgradeCost = 50;
-        this.prestigeCost = 1000;
-        this.rebirthCost = 10;
-        this.rebirthCount = 0;
-        this.prestigeCount = 0;
-        this.offlineEarningsUpgradeCost = 100;
-    }
-
-    // Function to update the UI with current game data
-    updateUI() {
-        const chickensElem = document.getElementById("chickens");
-        if (chickensElem) chickensElem.textContent = `Chickens: ${this.chickens}`;
-
-        const premiumElem = document.getElementById("premiumChickens");
-        if (premiumElem) premiumElem.textContent = `Premium Chickens: ${this.premiumChickens}`;
-
-        const clickPowerElem = document.getElementById("clickPower");
-        if (clickPowerElem) clickPowerElem.textContent = `Click Power: ${this.clickPower}`;
-
-        const autoClickersElem = document.getElementById("autoClickers");
-        if (autoClickersElem) autoClickersElem.textContent = `Auto Clickers: ${this.autoClickers}`;
-
-        const offlineMultElem = document.getElementById("offlineEarningsMultiplier");
-        if (offlineMultElem) offlineMultElem.textContent = `Offline Earnings Multiplier: ${this.offlineEarningsMultiplier}`;
-
-        // Update cost labels (if these elements exist)
-        this.updateCostText();
-    }
-
-    // Function to dynamically update cost labels for upgrades
-    updateCostText() {
-        const autoClickerCostElem = document.getElementById("autoClickerCost");
-        if (autoClickerCostElem) autoClickerCostElem.textContent = `Auto Clicker Cost: ${this.autoClickerCost} chickens`;
-
-        const clickUpgradeCostElem = document.getElementById("clickUpgradeCost");
-        if (clickUpgradeCostElem) clickUpgradeCostElem.textContent = `Click Upgrade Cost: ${this.clickUpgradeCost} chickens`;
-
-        const prestigeCostElem = document.getElementById("prestigeCost");
-        if (prestigeCostElem) prestigeCostElem.textContent = `Prestige Cost: ${this.prestigeCost} chickens`;
-
-        const rebirthCostElem = document.getElementById("rebirthCost");
-        if (rebirthCostElem) rebirthCostElem.textContent = `Rebirth Cost: ${this.rebirthCost} Prestiges`;
-
-        const offlineEarningsUpgradeCostElem = document.getElementById("offlineEarningsUpgradeCost");
-        if (offlineEarningsUpgradeCostElem) offlineEarningsUpgradeCostElem.textContent = `Offline Earnings Upgrade Cost: ${this.offlineEarningsUpgradeCost} chickens`;
-    }
-
-    // Function to "click" and add chickens
-    clickChicken() {
-        this.chickens += this.clickPower;
-        this.updateUI();
-    }
-
-    // Buy offline earnings upgrade
-    buyOfflineEarningsUpgrade() {
-        if (this.chickens >= this.offlineEarningsUpgradeCost) {
-            this.chickens -= this.offlineEarningsUpgradeCost;
-            this.offlineEarningsMultiplier *= 1.5; // Increase offline earnings by 50%
-            this.offlineEarningsUpgradeCost = Math.floor(this.offlineEarningsUpgradeCost * 1.2); // Increase next upgrade cost
-            this.updateUI();
-        }
-    }
-
-    // Buy an auto-clicker
-    buyAutoClicker() {
-        if (this.chickens >= this.autoClickerCost) {
-            this.chickens -= this.autoClickerCost;
-            this.autoClickers++;
-            this.autoClickerCost = Math.floor(this.autoClickerCost * 1.1); // Increase next auto-clicker cost
-            this.updateUI();
-        }
-    }
-
-    // Buy a click upgrade
-    buyClickUpgrade() {
-        if (this.chickens >= this.clickUpgradeCost) {
-            this.chickens -= this.clickUpgradeCost;
-            this.clickPower++;
-            this.clickUpgradeCost = Math.floor(this.clickUpgradeCost * 1.2); // Increase next click upgrade cost
-            this.updateUI();
-        }
-    }
-
-    // Prestige function
-    prestige() {
-        if (this.chickens >= this.prestigeCost) {
-            this.chickens = 0; // Reset chickens count
-            this.premiumChickens++; // Increment premium chickens
-            this.prestigeCount++;
-            this.prestigeCost = Math.floor(this.prestigeCost * 1.5); // Increase next prestige cost
-            this.updateUI();
-        }
-    }
-
-    // Rebirth function
-    rebirth() {
-        if (this.prestigeCount >= this.rebirthCost) {
-            this.chickens = 0; // Reset chickens count
-            this.rebirthCount++;
-            this.rebirthCost = Math.floor(this.rebirthCost * 2); // Increase next rebirth cost
-            this.updateUI();
-        }
-    }
-
-    // Save the current game state to localStorage
-    saveGame() {
+// Export game data as a file
+    exportGame() {
         const gameData = {
             chickens: this.chickens,
             premiumChickens: this.premiumChickens,
@@ -122,55 +9,100 @@ class Game {
             autoClickerCost: this.autoClickerCost,
             clickUpgradeCost: this.clickUpgradeCost,
             prestigeCost: this.prestigeCost,
+            rebirthCost: this.rebirthCost,
             rebirthCount: this.rebirthCount,
             prestigeCount: this.prestigeCount,
             offlineEarningsUpgradeCost: this.offlineEarningsUpgradeCost,
+            lastSaveTime: Date.now(),
+            currentChickenSkin: this.currentChickenSkin,
+            currentBackground: this.currentBackground,
+            unlockedSkins: this.unlockedSkins,
+            unlockedBackgrounds: this.unlockedBackgrounds
         };
-        localStorage.setItem('chickenClickerSave', JSON.stringify(gameData));
+        
+        const dataStr = JSON.stringify(gameData);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        
+        const exportFileName = 'chicken_clicker_save_' + new Date().toISOString().slice(0, 10) + '.json';
+        
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileName);
+        linkElement.click();
     }
-
-    // Load the saved game state from localStorage
-    loadGame() {
-        const savedGame = localStorage.getItem('chickenClickerSave');
-        if (savedGame) {
-            try {
-                const gameData = JSON.parse(savedGame);
-                this.chickens = gameData.chickens;
-                this.premiumChickens = gameData.premiumChickens;
-                this.clickPower = gameData.clickPower;
-                this.autoClickers = gameData.autoClickers;
-                this.offlineEarningsMultiplier = gameData.offlineEarningsMultiplier;
-                this.autoClickerCost = gameData.autoClickerCost;
-                this.clickUpgradeCost = gameData.clickUpgradeCost;
-                this.prestigeCost = gameData.prestigeCost;
-                this.rebirthCount = gameData.rebirthCount;
-                this.prestigeCount = gameData.prestigeCount;
-                this.offlineEarningsUpgradeCost = gameData.offlineEarningsUpgradeCost;
-                this.updateUI();
-            } catch (e) {
-                console.error("Failed to load saved game:", e);
-                this.resetGame(); // Reset to default values if loading fails
+    
+    // Import game from a file
+    importGame(fileContent) {
+        try {
+            const gameData = JSON.parse(fileContent);
+            
+            // Validate that this is actually game data
+            if (gameData.chickens === undefined || gameData.clickPower === undefined) {
+                throw new Error("Invalid save file");
             }
-        } else {
-            this.resetGame(); // No saved game, load defaults
+            
+            // Load the data
+            this.chickens = gameData.chickens || 0;
+            this.premiumChickens = gameData.premiumChickens || 0;
+            this.clickPower = gameData.clickPower || 1;
+            this.autoClickers = gameData.autoClickers || 0;
+            this.offlineEarningsMultiplier = gameData.offlineEarningsMultiplier || 1;
+            this.autoClickerCost = gameData.autoClickerCost || 10;
+            this.clickUpgradeCost = gameData.clickUpgradeCost || 50;
+            this.prestigeCost = gameData.prestigeCost || 1000;
+            this.rebirthCost = gameData.rebirthCost || 10;
+            this.rebirthCount = gameData.rebirthCount || 0;
+            this.prestigeCount = gameData.prestigeCount || 0;
+            this.offlineEarningsUpgradeCost = gameData.offlineEarningsUpgradeCost || 100;
+            this.lastSaveTime = Date.now(); // Always use current time to prevent offline earnings abuse
+            this.currentChickenSkin = gameData.currentChickenSkin || "default";
+            this.currentBackground = gameData.currentBackground || "default";
+            this.unlockedSkins = gameData.unlockedSkins || ["default"];
+            this.unlockedBackgrounds = gameData.unlockedBackgrounds || ["default"];
+            
+            this.updateUI();
+            this.applySkins();
+            alert("Game imported successfully!");
+            return true;
+        } catch (e) {
+            console.error("Failed to import game:", e);
+            alert("Failed to import game: " + e.message);
+            return false;
         }
     }
-
-    // Reset the game to its initial state
-    resetGame() {
-        this.chickens = 0;
-        this.premiumChickens = 0;
-        this.clickPower = 1;
-        this.autoClickers = 0;
-        this.offlineEarningsMultiplier = 1;
-        this.autoClickerCost = 10;
-        this.clickUpgradeCost = 50;
-        this.prestigeCost = 1000;
-        this.rebirthCost = 10;
-        this.rebirthCount = 0;
-        this.prestigeCount = 0;
-        this.offlineEarningsUpgradeCost = 100;
-        this.updateUI();
+    
+    // Apply visual customizations
+    applySkins() {
+        const chickenImage = document.getElementById("chickenImage");
+        
+        // Apply chicken skin
+        switch(this.currentChickenSkin) {
+            case "red":
+                chickenImage.style.filter = "hue-rotate(330deg)";
+                break;
+            case "golden":
+                chickenImage.style.filter = "sepia(100%) hue-rotate(10deg) saturate(1000%)";
+                break;
+            default:
+                chickenImage.style.filter = "none";
+        }
+        
+        // Apply background
+        switch(this.currentBackground) {
+            case "rainbow":
+                document.body.style.background = "linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet)";
+                break;
+            default:
+                document.body.style.background = "#2f2f2f";
+        }
+    }
+    
+    // For auto clickers to work
+    autoClickerTick() {
+        if (this.autoClickers > 0) {
+            this.chickens += this.autoClickers;
+            this.updateUI();
+        }
     }
 }
 
@@ -178,21 +110,30 @@ class Game {
 const game = new Game();
 game.loadGame();
 
+// Set up the auto clicker interval
+setInterval(() => {
+    game.autoClickerTick();
+}, 1000);
+
+// Chicken clicking
+document.getElementById("chickenImage").addEventListener("click", () => game.clickChicken());
+
 // Button Click Handlers with Event Listeners
 document.getElementById("buyAutoClicker").addEventListener("click", () => game.buyAutoClicker());
 document.getElementById("buyClickUpgrade").addEventListener("click", () => game.buyClickUpgrade());
 document.getElementById("prestige").addEventListener("click", () => game.prestige());
 document.getElementById("rebirth").addEventListener("click", () => game.rebirth());
 document.getElementById("buyOfflineEarningsUpgrade").addEventListener("click", () => game.buyOfflineEarningsUpgrade());
-document.getElementById("clickChicken").addEventListener("click", () => game.clickChicken());
 
-// Modal Handling
+// Settings Modal
 document.getElementById("settingsButton").addEventListener("click", () => {
     document.getElementById("settingsModal").style.display = "block";
 });
 document.getElementById("closeSettings").addEventListener("click", () => {
     document.getElementById("settingsModal").style.display = "none";
 });
+
+// Shop Modal
 document.getElementById("shopButton").addEventListener("click", () => {
     document.getElementById("shopModal").style.display = "block";
 });
@@ -200,7 +141,50 @@ document.getElementById("closeShop").addEventListener("click", () => {
     document.getElementById("shopModal").style.display = "none";
 });
 
-// Periodically save game data every 10 seconds (to prevent data loss)
+// Update Modal
+document.getElementById("closeUpdateModal").addEventListener("click", () => {
+    document.getElementById("updateModal").style.display = "none";
+});
+
+// Settings buttons
+document.getElementById("saveGameBtn").addEventListener("click", () => {
+    if (game.saveGame()) {
+        alert("Game saved successfully!");
+    } else {
+        alert("Failed to save game. Local storage may be disabled or full.");
+    }
+});
+
+document.getElementById("resetGameBtn").addEventListener("click", () => {
+    if (confirm("Are you sure you want to reset your game? All progress will be lost!")) {
+        game.resetGame();
+        localStorage.removeItem('chickenClickerSave');
+        alert("Game reset successfully!");
+    }
+});
+
+document.getElementById("exportGameBtn").addEventListener("click", () => {
+    game.exportGame();
+});
+
+document.getElementById("importGameBtn").addEventListener("click", () => {
+    const fileInput = document.getElementById("loadGameFile");
+    if (fileInput.files.length === 0) {
+        alert("Please select a save file first.");
+        return;
+    }
+    
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+    
+    reader.onload = function(event) {
+        game.importGame(event.target.result);
+    };
+    
+    reader.readAsText(file);
+});
+
+// Periodically save game data every 30 seconds
 setInterval(() => {
     game.saveGame();
-}, 10000);
+}, 30000);
