@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Snake Game</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            color: #333;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        h1 {
+            color: #4CAF50;
+            margin-bottom: 0;
+        }
+        
+        .game-area {
+            position: relative;
+            width: 600px;
+            height: 400px;
+            border: 4px solid #4CAF50;
+            border-radius: 8px;
+            background-color: #111;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        canvas {
+            display: block;
+        }
+        
+        .info-panel {
+            display: flex;
+            justify-content: space-between;
+            width: 600px;
+            margin-bottom: 10px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .score-container, .high-score-container, .level-container, .speed-container {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            width: 600px;
+        }
+        
+        .game-buttons button, .options button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        .game-buttons button:hover, .options button:hover {
+            background-color: #45a049;
+        }
+        
+        .game-buttons button:active, .options button:active {
+            background-color: #3d8b40;
+        }
+        
+        .options {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .option-row {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        
+        select, input[type="color"] {
+            margin-left: 10px;
+            padding: 5px;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 2em;
+            display: none;
+        }
+        
+        .game-over button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.6em;
+        }
+        
+        .mobile-controls {
+            display: none;
+            margin-top: 20px;
+            width: 200px;
+            height: 200px;
+            position: relative;
+        }
+        
+        .mobile-btn {
+            position: absolute;
+            background-color: rgba(76, 175, 80, 0.7);
+            color: white;
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .up {
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .right {
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+        }
+        
+        .down {
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .left {
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+        }
+        
+        @media (max-width: 650px) {
+            .game-area, .info-panel, .controls {
+                width: 90vw;
+            }
+            
+            .game-area {
+                height: 60vw;
+            }
+            
+            .mobile-controls {
+                display: block;
+            }
+        }
+        
+        /* Power-up styles */
+        .powerup-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+            height: 30px;
+        }
+        
+        .powerup-icon {
+            width: 20px;
+            height: 20px;
+            margin: 0 5px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .speed-boost {
+            background-color: #1E90FF;
+        }
+        
+        .shield {
+            background-color: #FFD700;
+        }
+        
+        .ghost {
+            background-color: #9370DB;
+        }
+        
+        .shrink {
+            background-color: #FF6347;
+        }
+        
+        .timer {
+            margin-left: 5px;
+            font-weight: bold;
+        }
+        
+        .active {
+            box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.8);
+        }
+        
+        .help-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(76, 175, 80, 0.7);
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .help-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            display: none;
+        }
+        
+        .help-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .help-content h2 {
+            color: #4CAF50;
+        }
+        
+        .help-content ul {
+            padding-left: 20px;
+        }
+        
+        .close-help {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>Advanced Snake Game</h1>
+        </div>
+        
+        <div class="info-panel">
+            <div class="score-container">
+                <div>Score</div>
+                <div id="score">0</div>
+            </div>
+            <div class="high-score-container">
+                <div>High Score</div>
+                <div id="high-score">0</div>
+            </div>
+            <div class="level-container">
+                <div>Level</div>
+                <div id="level">1</div>
+            </div>
+            <div class="speed-container">
+                <div>Speed</div>
+                <div id="speed">1x</div>
+            </div>
+        </div>
+        
+        <div class="game-area">
+            <canvas id="game-canvas"></canvas>
+            <div class="game-over" id="game-over">
+                <div>GAME OVER</div>
+                <div id="final-score">Score: 0</div>
+                <button id="restart-button">Play Again</button>
+            </div>
+            <button class="help-btn" id="help-button">?</button>
+        </div>
+        
+        <div class="powerup-indicator" id="powerup-indicator">
+            <div class="powerup-icon speed-boost" id="speed-boost-icon"></div>
+            <div class="powerup-icon shield" id="shield-icon"></div>
+            <div class="powerup-icon ghost" id="ghost-icon"></div>
+            <div class="powerup-icon shrink" id="shrink-icon"></div>
+            <div class="timer" id="powerup-timer"></div>
+        </div>
+        
+        <div class="controls">
+            <div class="game-buttons">
+                <button id="start-button">Start Game</button>
+                <button id="pause-button">Pause</button>
+            </div>
+            <div class="options">
+                <div class="option-row">
+                    <label for="difficulty">Difficulty:</label>
+                    <select id="difficulty">
+                        <option value="easy">Easy</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                </div>
+                <div class="option-row">
+                    <label for="snake-color">Snake Color:</label>
+                    <input type="color" id="snake-color" value="#4CAF50">
+                </div>
+                <div class="option-row">
+                    <label for="food-color">Food Color:</label>
+                    <input type="color" id="food-color" value="#FF0000">
+                </div>
+            </div>
+        </div>
+        
+        <div class="mobile-controls" id="mobile-controls">
+            <button class="mobile-btn up" id="up-button">↑</button>
+            <button class="mobile-btn right" id="right-button">→</button>
+            <button class="mobile-btn down" id="down-button">↓</button>
+            <button class="mobile-btn left" id="left-button">←</button>
+        </div>
+    </div>
+    
+    <div class="help-modal" id="help-modal">
+        <div class="help-content">
+            <h2>How to Play</h2>
+            <p>Use the arrow keys or WASD to control the snake. Eat food to grow longer and increase your score.</p>
+            
+            <h3>Controls</h3>
+            <ul>
+                <li>Arrow keys or WASD: Move the snake</li>
+                <li>Space: Pause/Resume the game</li>
+                <li>R: Restart the game</li>
+            </ul>
+            
+            <h3>Power-ups</h3>
+            <ul>
+                <li><span style="color: #1E90FF; font-weight: bold;">Speed Boost</span>: Temporarily increases the snake's speed</li>
+                <li><span style="color: #FFD700; font-weight: bold;">Shield</span>: Protects the snake from one collision</li>
+                <li><span style="color: #9370DB; font-weight: bold;">Ghost</span>: Allows the snake to pass through walls</li>
+                <li><span style="color: #FF6347; font-weight: bold;">Shrink</span>: Reduces the snake's length by 50%</li>
+            </ul>
+            
+            <h3>Obstacles</h3>
+            <p>As you level up, obstacles will appear. Avoid hitting them!</p>
+            
+            <button class="close-help" id="close-help">Close</button>
+        </div>
+    </div>
+
+    <script>
+        class Snake {
+            constructor(canvas, options = {}) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                
+                // Game settings
+                this.gridSize = options.gridSize || 20;
+                this.snakeColor = options.snakeColor || '#4CAF50';
+                this.foodColor = options.foodColor || '#FF0000';
+                this.speed = options.speed || 100;
+                this.initialSpeed = this.speed;
+                this.difficulty = options.difficulty || 'medium';
+                
+                // Calculate grid dimensions
+                this.gridWidth = Math.floor(canvas.width / this.gridSize);
+                this.gridHeight = Math.floor(canvas.height / this.gridSize);
+                
+                // Game state
+                this.snake = [];
+                this.direction = 'right';
+                this.nextDirection = 'right';
+                this.food = null;
+                this.obstacles = [];
+                this.powerUps = [];
+                this.activePowerUps = {
+                    speedBoost: 0,
+                    shield: 0,
+                    ghost: 0,
+                    shrink: 0
+                };
+                
+                this.score = 0;
+                this.highScore = parseInt(localStorage.getItem('snakeHighScore')) || 0;
+                this.level = 1;
+                this.pointsToNextLevel = 10;
+                
+                this.gameInterval = null;
+                this.isGameOver = false;
+                this.isPaused = false;
+                
+                // DOM elements
+                this.scoreElement = document.getElementById('score');
+                this.highScoreElement = document.getElementById('high-score');
+                this.levelElement = document.getElementById('level');
+                this.speedElement = document.getElementById('speed');
+                this.gameOverElement = document.getElementById('game-over');
+                this.finalScoreElement = document.getElementById('final-score');
+                this.powerupIndicator = document.getElementById('powerup-indicator');
+                this.powerupTimer = document.getElementById('powerup-timer');
+                
+                // Power-up icons
+                this.speedBoostIcon = document.getElementById('speed-boost-icon');
+                this.shieldIcon = document.getElementById('shield-icon');
+                this.ghostIcon = document.getElementById('ghost-icon');
+                this.shrinkIcon = document.getElementById('shrink-icon');
+                
+                // Initialize the game
+                this.init();
+            }
+            
+            init() {
+                // Set canvas dimensions
+                this.canvas.width = this.gridWidth * this.gridSize;
+                this.canvas.height = this.gridHeight * this.gridSize;
+                
+                // Initialize snake
+                this.snake = [
+                    { x: 3, y: Math.floor(this.gridHeight / 2) },
+                    { x: 2, y: Math.floor(this.gridHeight / 2) },
+                    { x: 1, y: Math.floor(this.gridHeight / 2) }
+                ];
+                
+                // Initialize game state
+                this.direction = 'right';
+                this.nextDirection = 'right';
+                this.score = 0;
+                this.level = 1;
+                this.pointsToNextLevel = 10;
+                this.isGameOver = false;
+                this.isPaused = false;
+                this.obstacles = [];
+                this.powerUps = [];
+                this.activePowerUps = {
+                    speedBoost: 0,
+                    shield: 0,
+                    ghost: 0,
+                    shrink: 0
+                };
+                
+                // Generate initial food and obstacles
+                this.generateFood();
+                this.updateScoreDisplay();
+                this.adjustDifficulty();
+                
+                // Hide game over screen
+                this.gameOverElement.style.display = 'none';
+                
+                // Clear any existing game interval
+                if (this.gameInterval) {
+                    clearInterval(this.gameInterval);
+                }
+            }
+            
+            start() {
+                if (this.gameInterval) {
+                    clearInterval(this.gameInterval);
+                }
+                this.gameInterval = setInterval(() => {
+                    if (!this.isPaused && !this.isGameOver) {
+                        this.update();
+                        this.draw();
+                    }
+                }, this.speed);
+            }
+            
+            pause() {
+                this.isPaused = !this.isPaused;
+                return this.isPaused;
+            }
+            
+            reset() {
+                this.init();
+                this.start();
+            }
+            
+            update() {
+                // Update direction
+                this.direction = this.nextDirection;
+                
+                // Calculate new head position
+                const head = { ...this.snake[0] };
+                
+                switch (this.direction) {
+                    case 'up':
+                        head.y -= 1;
+                        break;
+                    case 'down':
+                        head.y += 1;
+                        break;
+                    case 'left':
+                        head.x -= 1;
+                        break;
+                    case 'right':
+                        head.x += 1;
+                        break;
+                }
+                
+                // Check for wall collision
+                if (!this.activePowerUps.ghost) {
+                    if (head.x < 0 || head.x >= this.gridWidth || head.y < 0 || head.y >= this.gridHeight) {
+                        if (this.activePowerUps.shield > 0) {
+                            this.activePowerUps.shield = 0;
+                            this.updatePowerUpIndicators();
+                            // Wrap around instead of game over
+                            if (head.x < 0) head.x = this.gridWidth - 1;
+                            if (head.x >= this.gridWidth) head.x = 0;
+                            if (head.y < 0) head.y = this.gridHeight - 1;
+                            if (head.y >= this.gridHeight) head.y = 0;
+                        } else {
+                            this.gameOver();
+                            return;
+                        }
+                    }
+                } else {
+                    // Ghost mode - wrap around
+                    if (head.x < 0) head.x = this.gridWidth - 1;
+                    if (head.x >= this.gridWidth) head.x = 0;
+                    if (head.y < 0) head.y = this.gridHeight - 1;
+                    if (head.y >= this.gridHeight) head.y = 0;
+                }
+                
+                // Check for obstacle collision
+                for (const obstacle of this.obstacles) {
+                    if (head.x === obstacle.x && head.y === obstacle.y) {
+                        if (this.activePowerUps.shield > 0) {
+                            this.activePowerUps.shield = 0;
+                            this.updatePowerUpIndicators();
+                        } else {
+                            this.gameOver();
+                            return;
+                        }
+                    }
+                }
+                
+                // Check for self collision
+                for (let i = 1; i < this.snake.length; i++) {
+                    if (head.x === this.snake[i].x && head.y === this.snake[i].y) {
+                        if (this.activePowerUps.shield > 0) {
+                            this.activePowerUps.shield = 0;
+                            this.updatePowerUpIndicators();
+                        } else {
+                            this.gameOver();
+                            return;
+                        }
+                    }
+                }
+                
+                // Check for food collision
+                let ateFood = false;
+                if (head.x === this.food.x && head.y === this.food.y) {
+                    this.score++;
+                    ateFood = true;
+                    this.generateFood();
+                    this.updateScoreDisplay();
+                    
+                    // Check for level up
+                    if (this.score >= this.pointsToNextLevel) {
+                        this.levelUp();
+                    }
+                }
+                
+                // Check for power-up collision
+                for (let i = 0; i < this.powerUps.length; i++) {
+                    const powerUp = this.powerUps[i];
+                    if (head.x === powerUp.x && head.y === powerUp.y) {
+                        this.activatePowerUp(powerUp.type);
+                        this.powerUps.splice(i, 1);
+                        break;
+                    }
+                }
+                
+                // Move snake
+                this.snake.unshift(head);
+                if (!ateFood) {
+                    this.snake.pop();
+                }
+                
+                // Update power-up timers
+                this.updatePowerUps();
+            }
+            
+            updatePowerUps() {
+                // Decrement power-up timers
+                for (const powerUp in this.activePowerUps) {
+                    if (this.activePowerUps[powerUp] > 0) {
+                        this.activePowerUps[powerUp]--;
+                        
+                        // Handle power-up expiration
+                        if (this.activePowerUps[powerUp] === 0) {
+                            if (powerUp === 'speedBoost') {
+                                // Reset speed
+                                this.speed = this.initialSpeed * (1 - (this.level - 1) * 0.05);
+                                clearInterval(this.gameInterval);
+                                this.start();
+                            }
+                        }
+                    }
+                }
+                
+                // Update power-up indicators
+                this.updatePowerUpIndicators();
+                
+                // Randomly generate power-ups with small probability
+                if (Math.random() < 0.005 && this.powerUps.length < 2) {
+                    this.generatePowerUp();
+                }
+            }
+            
+            updatePowerUpIndicators() {
+                // Update power-up icons
+                this.speedBoostIcon.classList.toggle('active', this.activePowerUps.speedBoost > 0);
+                this.shieldIcon.classList.toggle('active', this.activePowerUps.shield > 0);
+                this.ghostIcon.classList.toggle('active', this.activePowerUps.ghost > 0);
+                this.shrinkIcon.classList.toggle('active', this.activePowerUps.shrink > 0);
+                
+                // Display timer for active power-ups
+                let activePowerUp = null;
+                let maxTime = 0;
+                
+                for (const powerUp in this.activePowerUps) {
+                    if (this.activePowerUps[powerUp] > maxTime) {
+                        maxTime = this.activePowerUps[powerUp];
+                        activePowerUp = powerUp;
+                    }
+                }
+                
+                if (activePowerUp && maxTime > 0) {
+                    const seconds = Math.ceil(maxTime / (1000 / this.speed));
+                    this.powerupTimer.textContent = `${seconds}s`;
+                } else {
+                    this.powerupTimer.textContent = '';
+                }
+            }
+            
+            activatePowerUp(type) {
+                const duration = 100; // Game ticks
+                
+                switch (type) {
+                    case 'speedBoost':
+                        this.activePowerUps.speedBoost = duration;
+                        // Temporarily increase speed by 50%
+                        this.speed = this.speed * 0.67;
+                        clearInterval(this.gameInterval);
+                        this.start();
+                        break;
+                    case 'shield':
+                        this.activePowerUps.shield = duration;
+                        break;
+                    case 'ghost':
+                        this.activePowerUps.ghost = duration;
+                        break;
+                    case 'shrink':
+                        if (this.snake.length > 5) {
+                            // Remove half of the snake's body
+                            const newLength = Math.ceil(this.snake.length / 2);
+                            this.snake = this.snake.slice(0, newLength);
+                        }
+                        break;
+                }
+                
+                this.updatePowerUpIndicators();
+            }
+            
+            draw() {
+                // Clear canvas
+                this.ctx.fillStyle = '#111';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Draw snake
+                for (let i = 0; i < this.snake.length; i++) {
+                    const segment = this.snake[i];
+                    
+                    // Head is slightly different
+                    if (i === 0) {
+                        this.ctx.fillStyle = this.snakeColor;
+                    } else {
+                        // Create a gradient from head to tail
+                        const shade = 1 - (i / this.snake.length * 0.5);
+                        this.ctx.fillStyle = this.shadeColor(this.snakeColor, shade);
+                    }
+                    
+                    this.ctx.fillRect(
+                        segment.x * this.gridSize,
+                        segment.y * this.gridSize,
+                        this.gridSize,
+                        this.gridSize
+                    );
+                    
+                    // Draw eyes on the head
+                    if (i === 0) {
+                        this.ctx.fillStyle = 'white';
+                        
+                        const eyeSize = this.gridSize / 5;
+                        const eyeOffset = this.gridSize / 3;
+                        
+                        // Position eyes based on direction
+                        let eyeX1, eyeY1, eyeX2, eyeY2;
+                        
+                        switch (this.direction) {
+                            case 'up':
+                                eyeX1 = segment.x * this.gridSize + eyeOffset;
+                                eyeY1 = segment.y * this.gridSize + eyeOffset;
+                                eyeX2 = segment.x * this.gridSize + this.gridSize - eyeOffset - eyeSize;
+                                eyeY2 = segment.y * this.gridSize + eyeOffset;
+                                break;
+                            case 'down':
+                                eyeX1 = segment.x * this.gridSize + eyeOffset;
+                                eyeY1 = segment.y * this.gridSize + this.gridSize - eyeOffset - eyeSize;
+                                eyeX2 = segment.x * this.gridSize + this.gridSize - eyeOffset - eyeSize;
+                                eyeY2 = segment.y * this.gridSize + this.gridSize - eyeOffset - eyeSize;
+                                break;
+                            case 'left':
+                                eyeX1 = segment.x * this.gridSize + eyeOffset;
+                                eyeY1 = segment.y * this.gridSize + eyeOffset;
+                                eyeX2 = segment.x * this.gridSize + eyeOffset;
+                                eyeY2 = segment.y * this.gridSize + this.gridSize - eyeOffset - eyeSize;
+                                break;
+                            case 'right':
+                                eyeX1 = segment.x * this.gridSize + this.gridSize - eyeOffset - eyeSize;
+                                eyeY1 = segment.y * this.gridSize + eyeOffset;
+                                eyeX2 = segment.x * this.gridSize + this.gridSize - eyeOffset - eyeSize;
+                                eyeY2 = segment.y * this.gridSize + this.gridSize - eyeOffset - eyeSize;
+                                break;
+                        }
+                        
+                        this.ctx.fillRect(eyeX1, eyeY1, eyeSize, eyeSize);
+                        this.ctx.fillRect(eyeX2, eyeY2, eyeSize, eyeSize);
+                    }
+                }
+                
+                // Draw food
+                if (this.food) {
+                    this.ctx.fillStyle = this.foodColor;
+                    this.ctx.beginPath();
+                    this.ctx.arc(
+                        this.food.x * this.gridSize + this.gridSize / 2,
+                        this.food.y * this.gridSize + this.gridSize / 2,
+                        this.gridSize / 2,
+                        0,
+                        Math.PI * 2
+                    );
+                    this.ctx.fill();
+                    
+                    // Add shine to the food
+                    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                    this.ctx.beginPath();
+                    this.ctx.arc(
+                        this.food.x * this.gridSize + this.gridSize / 3,
+                        this.food.y * this.gridSize + this.gridSize / 3,
+                        this.gridSize / 6,
+                        0,
+                        Math.PI * 2
+                    );
+                    this.ctx.fill();
+                }
+                
+                // Draw obstacles
+                this.ctx.fillStyle = '#555';
+                for (const obstacle of this.obstacles) {
+                    this.ctx.fillRect(
+                        obstacle.x * this.gridSize,
+                        obstacle.y * this.gridSize,
+                        this.gridSize,
+                        this.gridSize
+                    );
+                }
+                
+                // Draw power-ups
+                for (const powerUp of this.powerUps) {
+                    let color;
+                    switch (powerUp.type) {
+                        case 'speedBoost':
+                            color = '#1E90FF'; // Blue
+                            break;
+                        case 'shield':
+                            color = '#FFD700'; // Gold
+                            break;
+                        case 'ghost':
+                            color = '#9370DB'; // Purple
+                            break;
+                        case 'shrink':
+                            color = '#FF6347'; // Tomato
+                            break;
+                    }
+                    
+                    // Draw power-up as diamond
+                    this.ctx.fillStyle = color;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(powerUp.x * this.gridSize + this.gridSize / 2, powerUp.y * this.gridSize);
+                    this.ctx.lineTo(powerUp.x * this.gridSize + this.gridSize, powerUp.y * this.gridSize + this.gridSize / 2);
+                    this.ctx.lineTo(powerUp.x * this.gridSize + this.gridSize / 2, powerUp.y * this.gridSize + this.gridSize);
+                    this.ctx.lineTo(powerUp.x * this.gridSize, powerUp.y * this.gridSize + this.gridSize / 2);
+                    this.ctx.closePath();
+                    this.ctx.fill();
+                    
+                    // Add pulsing effect
+                    const time = Date.now() / 200;
+                    const pulse = (Math.sin(time) + 1) / 4;
+                    this.ctx.fillStyle = `rgba(255, 255, 255, ${pulse})`;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(powerUp.x * this.gridSize + this
