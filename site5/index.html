@@ -3,52 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Full Screen Iframe</title>
+  <title>Full Screen Iframe with Border</title>
   <style>
     html, body {
       height: 100%;
       margin: 0;
       padding: 0;
     }
+
+    /* Container for the iframe with border */
+    .iframe-container {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      border: 5px solid #333;  /* You can adjust the border color and size */
+    }
+
     iframe {
       width: 100%;
       height: 100%;
       border: none;
     }
-    #fullscreenBtn {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      padding: 10px;
-      background-color: #333;
-      color: white;
-      border: none;
-      cursor: pointer;
-      z-index: 999;
-    }
+
   </style>
 </head>
 <body>
 
-  <button id="fullscreenBtn">Go Full Screen</button>
-  <iframe id="myIframe" src="https://nettleweb.com/m30r52dj?hidegui=1" allowfullscreen></iframe>
-
-  <script>
-    const fullscreenBtn = document.getElementById('fullscreenBtn');
-    const iframe = document.getElementById('myIframe');
-
-    fullscreenBtn.addEventListener('click', () => {
-      if (iframe.requestFullscreen) {
-        iframe.requestFullscreen();
-      } else if (iframe.mozRequestFullScreen) { // Firefox
-        iframe.mozRequestFullScreen();
-      } else if (iframe.webkitRequestFullscreen) { // Chrome, Safari, Opera
-        iframe.webkitRequestFullscreen();
-      } else if (iframe.msRequestFullscreen) { // IE/Edge
-        iframe.msRequestFullscreen();
-      }
-    });
-  </script>
+  <!-- Iframe Container with Border -->
+  <div class="iframe-container">
+    <iframe id="myIframe" src="https://nettleweb.com/m30r52dj?hidegui=1" allowfullscreen></iframe>
+  </div>
 
 </body>
 </html>
