@@ -15,11 +15,40 @@
       height: 100%;
       border: none;
     }
+    #fullscreenBtn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      padding: 10px;
+      background-color: #333;
+      color: white;
+      border: none;
+      cursor: pointer;
+      z-index: 999;
+    }
   </style>
 </head>
 <body>
 
-  <iframe src="https://nettleweb.com/m30r52dj?hidegui=1" allowfullscreen></iframe>
+  <button id="fullscreenBtn">Go Full Screen</button>
+  <iframe id="myIframe" src="https://nettleweb.com/m30r52dj?hidegui=1" allowfullscreen></iframe>
+
+  <script>
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const iframe = document.getElementById('myIframe');
+
+    fullscreenBtn.addEventListener('click', () => {
+      if (iframe.requestFullscreen) {
+        iframe.requestFullscreen();
+      } else if (iframe.mozRequestFullScreen) { // Firefox
+        iframe.mozRequestFullScreen();
+      } else if (iframe.webkitRequestFullscreen) { // Chrome, Safari, Opera
+        iframe.webkitRequestFullscreen();
+      } else if (iframe.msRequestFullscreen) { // IE/Edge
+        iframe.msRequestFullscreen();
+      }
+    });
+  </script>
 
 </body>
 </html>
