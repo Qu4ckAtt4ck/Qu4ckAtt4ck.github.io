@@ -6,8 +6,6 @@ $(document).ready(function () {
   var deck, playerHand, dealerHand;
   var gameInProgress = false;
 
-  // Utility functions
-
   function createDeck() {
     var suits = ['♠', '♥', '♦', '♣'];
     var values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
@@ -40,7 +38,6 @@ $(document).ready(function () {
       sum += cardValue(hand[i]);
       if (hand[i].value === 'A') aces++;
     }
-    // Adjust for Aces if bust
     while (sum > 21 && aces > 0) {
       sum -= 10;
       aces--;
@@ -53,7 +50,7 @@ $(document).ready(function () {
     for (var i = 0; i < hand.length; i++) {
       var cardDiv = $('<div class="card"></div>');
       if (i === 0 && hideFirstCard) {
-        cardDiv.text('🂠'); // back of card
+        cardDiv.text('🂠');
       } else {
         cardDiv.text(hand[i].value + hand[i].suit);
       }
@@ -72,8 +69,6 @@ $(document).ready(function () {
     alertBox.removeClass('hide');
     setTimeout(() => alertBox.addClass('hide'), 3000);
   }
-
-  // Game actions
 
   $('#deal').click(function () {
     wager = parseInt($('#wager').val());
@@ -105,7 +100,6 @@ $(document).ready(function () {
 
     gameInProgress = true;
 
-    // Check for blackjack
     if (handValue(playerHand) === 21) {
       stand();
     }
@@ -129,10 +123,8 @@ $(document).ready(function () {
   });
 
   function stand() {
-    // Reveal dealer hand
     displayHand($('#dhand'), dealerHand, false);
 
-    // Dealer hits until 17+
     while (handValue(dealerHand) < 17) {
       dealerHand.push(deck.pop());
       displayHand($('#dhand'), dealerHand, false);
@@ -166,7 +158,6 @@ $(document).ready(function () {
     }
   }
 
-  // Modal buttons
   $('#cancel').click(function (e) {
     e.preventDefault();
     $('#myModal').modal('hide');
@@ -180,6 +171,5 @@ $(document).ready(function () {
     $('#myModal').modal('hide');
   });
 
-  // Initialize display
   updateCashBank();
 });
