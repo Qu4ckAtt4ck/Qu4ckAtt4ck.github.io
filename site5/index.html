@@ -1,61 +1,443 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Blackjack Game</title>
-  <link rel="stylesheet" href="styles.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Blackjack Game</title>
+
+<!-- Bootstrap 2.3.2 CSS (matching your classes like btn, hide, modal) -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@2.3.2/css/bootstrap.min.css" rel="stylesheet" />
+
+<style>
+  body {
+    background: #006600;
+    color: white;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 1rem;
+    user-select: none;
+  }
+  #wrapper {
+    max-width: 700px;
+    margin: 0 auto;
+    background: #004d00;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px #003300;
+  }
+  #alert {
+    margin-bottom: 15px;
+  }
+  #dealer, #player {
+    margin-bottom: 20px;
+  }
+  #dhand, #phand {
+    display: flex;
+    gap: 10px;
+    min-height: 120px;
+  }
+  .card {
+    width: 80px;
+    height: 120px;
+    border-radius: 10px;
+    background-color: white;
+    color: black;
+    font-weight: bold;
+    font-size: 1.3rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    box-shadow: 2px 2px 5px #333;
+    user-select: none;
+  }
+  .card.down {
+    background-color: #222;
+    border: 2px solid #555;
+    color: transparent;
+    cursor: default;
+  }
+  .hearts, .diamonds {
+    color: red;
+  }
+  .clubs, .spades {
+    color: black;
+  }
+  #money {
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+  }
+  #actions {
+    margin-top: 15px;
+  }
+  #actions .btn {
+    margin-right: 8px;
+    margin-bottom: 8px;
+  }
+  #wager {
+    width: 70px;
+    text-align: center;
+  }
+</style>
 </head>
 <body>
 
-  <div id="wrapper"> 
-    <div id="game">
-      <div id="alert" class="alert alert-error hide" role="alert">
-        <span id="alertMessage"></span>
-      </div>
-
-      <div id="dealer">
-        <div id="dhand"></div>
-      </div>
-
-      <div id="player">
-        <div id="phand"></div>
-      </div>
-
-      <div id="money">
-        <div id="cash">Cash: $<span id="cashAmount">0</span></div>
-        <div id="bank">Winnings: $<span id="bankAmount">0</span></div>
-      </div>
+<div id="wrapper">
+  <div id="game">
+    <div id="alert" class="alert alert-error hide"><span></span></div>
+    <div id="dealer">
+      <div id="dhand"></div>
     </div>
-
-    <div id="actions">
-      <button id="deal" class="btn">Deal!</button>
-      <button id="hit" class="btn" disabled>Hit</button>
-      <button id="stand" class="btn" disabled>Stand</button>
-      <button id="double" class="btn" disabled>Double Down</button>
-      <button id="split" class="btn" disabled>Split</button>
-      <button id="insurance" class="btn" disabled>Insurance</button>
-
-      <label for="wager"><strong>Wager:</strong> $</label>
-      <input id="wager" class="input-small" type="text" />
+    <div id="player">
+      <div id="phand"></div>
+    </div>
+    <div id="money">
+      <span id="cash">Cash: $<span></span></span><br/>
+      <div id="bank">Winnings: $<span></span></div>
     </div>
   </div>
-
-  <!-- Modal -->
-  <div id="myModal" class="modal hide fade" role="dialog" aria-hidden="true">
-    <div class="modal-header">
-      <button type="button" class="close" id="modalClose" aria-label="Close">&times;</button>
-      <h3>Out of cash!</h3>
-    </div>
-    <div class="modal-body">
-      <p>You ran out of cash, but you spot an ATM nearby. Would you like to withdraw another $1,000 and try your luck again?</p>
-    </div>
-    <div class="modal-footer">
-      <a href="#" id="cancel" class="btn">Nah</a>
-      <a href="#" id="newGame" class="btn btn-primary">Yes!</a>
-    </div>
+  <div id="actions">
+    <button id="deal" class="btn">Deal!</button>
+    <button id="hit" class="btn" disabled>Hit</button>
+    <button id="stand" class="btn" disabled>Stand</button>
+    <button id="double" class="btn" disabled>Double Down</button>
+    <button id="split" class="btn" disabled>Split</button>
+    <button id="insurance" class="btn" disabled>Insurance</button>
+    <strong>Wager:</strong> $<input id="wager" class="input-small" type="text" />
   </div>
-  
-  <script src="scripts/script.js"></script>
+</div>
+
+<div id="myModal" class="modal hide fade">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h3>Out of cash!</h3>
+  </div>
+  <div class="modal-body">
+    <p>You ran out of cash, but you spot an ATM nearby. Would you like to withdraw another $1,000 and try your luck again?</p>
+  </div>
+  <div class="modal-footer">
+    <a href="#" id="cancel" class="btn">Nah</a>
+    <a href="#" id="newGame" class="btn btn-primary">Yes!</a>
+  </div>
+</div>
+
+<!-- jQuery and Bootstrap 2.3.2 JS -->
+<script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@2.3.2/js/bootstrap.min.js"></script>
+
+<script>
+$(function() {
+  // Cards & suits data
+  const cards = {
+    1: "A", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6",
+    7: "7", 8: "8", 9: "9", 10: "10", 11: "J", 12: "Q", 13: "K"
+  };
+  const suits = {
+    1: "♠", 2: "♣", 3: "♥", 4: "♦"
+  };
+
+  let deck = [];
+  let playerHand = [];
+  let dealerHand = [];
+
+  let cash = 1000;
+  let wager = 100;
+  let bank = 0;
+
+  let dealerPoints = 0;
+  let playerPoints = 0;
+
+  // Cached DOM elements
+  const $cash = $('#cash span');
+  const $bank = $('#bank span');
+  const $wager = $('#wager');
+  const $phand = $('#phand');
+  const $dhand = $('#dhand');
+  const $alert = $('#alert');
+  const $alertText = $('#alert span');
+
+  const $deal = $('#deal');
+  const $hit = $('#hit');
+  const $stand = $('#stand');
+  const $double = $('#double');
+  const $split = $('#split');
+  const $insurance = $('#insurance');
+
+  const $modal = $('#myModal');
+  const $newGame = $('#newGame');
+  const $cancel = $('#cancel');
+
+  // Shuffle deck
+  function shuffle(array) {
+    for (let i = array.length -1; i > 0; i--) {
+      let j = Math.floor(Math.random() * (i+1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  // Create deck
+  function createDeck() {
+    deck = [];
+    for (let suit=1; suit<=4; suit++) {
+      for (let val=1; val<=13; val++) {
+        deck.push({suit, val});
+      }
+    }
+    shuffle(deck);
+  }
+
+  // Render a card div
+  function renderCard(card, faceUp=true, index=0, owner='player') {
+    const cardDiv = $('<div>').addClass('card');
+    if (!faceUp) {
+      cardDiv.addClass('down');
+      return cardDiv;
+    }
+    cardDiv.addClass('up');
+
+    // Suit color classes
+    let suitClass = '';
+    if (card.suit === 3) suitClass = 'hearts';
+    else if (card.suit === 4) suitClass = 'diamonds';
+    else if (card.suit === 1) suitClass = 'spades';
+    else if (card.suit === 2) suitClass = 'clubs';
+
+    cardDiv.text(cards[card.val]);
+    const suitSpan = $('<span>').addClass(suitClass).css({
+      'font-size': '1.2rem', 'display': 'block', 'line-height': '1rem'
+    }).text(suits[card.suit]);
+    cardDiv.append(suitSpan);
+
+    cardDiv.attr('id', (owner === 'player' ? 'pcard-' : 'dcard-') + index);
+
+    return cardDiv;
+  }
+
+  // Calculate points with ace logic
+  function calculatePoints(hand) {
+    let sum = 0;
+    let aces = 0;
+    for (const card of hand) {
+      let val = card.val;
+      if (val > 10) val = 10;
+      else if (val === 1) {
+        aces++;
+        val = 11;
+      }
+      sum += val;
+    }
+    while (sum > 21 && aces > 0) {
+      sum -= 10;
+      aces--;
+    }
+    return sum;
+  }
+
+  // Show alert
+  function showAlert(msg, type='error') {
+    $alert.removeClass('hide alert-error alert-info alert-success alert-warning');
+    $alert.addClass('alert-' + type).removeClass('hide');
+    $alertText.text(msg);
+  }
+  // Hide alert
+  function clearAlert() {
+    $alert.addClass('hide');
+  }
+
+  // Update cash and winnings display
+  function updateDisplays() {
+    $cash.text(cash);
+    $bank.text(bank);
+  }
+
+  // Clear hands display
+  function clearHands() {
+    $phand.empty();
+    $dhand.empty();
+  }
+
+  // Reset buttons state
+  function resetButtons() {
+    $deal.prop('disabled', false);
+    $hit.prop('disabled', true);
+    $stand.prop('disabled', true);
+    $double.prop('disabled', true);
+    $split.prop('disabled', true);
+    $insurance.prop('disabled', true);
+  }
+
+  // Deal cards and start round
+  function deal() {
+    wager = parseInt($wager.val());
+    if (isNaN(wager) || wager <= 0) {
+      showAlert('Please enter a valid wager greater than zero!', 'warning');
+      return;
+    }
+    if (wager > cash) {
+      showAlert('Insufficient cash for that wager!', 'warning');
+      return;
+    }
+
+    clearAlert();
+    clearHands();
+    createDeck();
+
+    playerHand = [];
+    dealerHand = [];
+
+    playerHand.push(deck.pop());
+    dealerHand.push(deck.pop());
+    playerHand.push(deck.pop());
+    dealerHand.push(deck.pop());
+
+    // Dealer shows first card face up, second down
+    $dhand.append(renderCard(dealerHand[0], true, 0, 'dealer'));
+    $dhand.append(renderCard(dealerHand[1], false, 1, 'dealer'));
+
+    // Player shows both cards face up
+    playerHand.forEach((card, i) => {
+      $phand.append(renderCard(card, true, i, 'player'));
+    });
+
+    dealerPoints = calculatePoints(dealerHand);
+    playerPoints = calculatePoints(playerHand);
+
+    cash -= wager;
+    updateDisplays();
+
+    $deal.prop('disabled', true);
+    $hit.prop('disabled', false);
+    $stand.prop('disabled', false);
+    $double.prop('disabled', wager * 2 <= cash);
+    $split.prop('disabled', true); // Split logic not implemented
+    $insurance.prop('disabled', dealerHand[0].val === 1 && cash >= wager / 2 ? false : true);
+
+    // Check blackjack
+    if (playerPoints === 21) {
+      revealDealerHand();
+      if (dealerPoints === 21) {
+        showAlert("Both have Blackjack! It's a push.", "info");
+        cash += wager;
+        updateDisplays();
+        resetButtons();
+      } else {
+        showAlert("Blackjack! You win 1.5x your wager.", "success");
+        bank += wager * 1.5;
+        updateDisplays();
+        resetButtons();
+      }
+    }
+  }
+
+  // Player hits
+  function hit() {
+    if (deck.length === 0) createDeck();
+    playerHand.push(deck.pop());
+    $phand.append(renderCard(playerHand[playerHand.length - 1], true, playerHand.length - 1, 'player'));
+    playerPoints = calculatePoints(playerHand);
+
+    if (playerPoints > 21) {
+      showAlert("You bust! Dealer wins.", "error");
+      resetButtons();
+      $deal.prop('disabled', false);
+    }
+  }
+
+  // Player stands, dealer plays
+  function stand() {
+    revealDealerHand();
+
+    while (dealerPoints < 17) {
+      dealerHand.push(deck.pop());
+      $dhand.append(renderCard(dealerHand[dealerHand.length - 1], true, dealerHand.length - 1, 'dealer'));
+      dealerPoints = calculatePoints(dealerHand);
+    }
+
+    if (dealerPoints > 21) {
+      showAlert("Dealer busts! You win!", "success");
+      bank += wager * 2;
+    } else if (dealerPoints === playerPoints) {
+      showAlert("Push - it's a tie.", "info");
+      cash += wager;
+    } else if (dealerPoints > playerPoints) {
+      showAlert("Dealer wins.", "error");
+    } else {
+      showAlert("You win!", "success");
+      bank += wager * 2;
+    }
+
+    updateDisplays();
+    resetButtons();
+    $deal.prop('disabled', false);
+
+    if (cash <= 0) {
+      $modal.modal('show');
+    }
+  }
+
+  // Reveal dealer's hidden card
+  function revealDealerHand() {
+    $dhand.empty();
+    dealerHand.forEach((card, i) => {
+      $dhand.append(renderCard(card, true, i, 'dealer'));
+    });
+  }
+
+  // Double Down
+  $double.click(() => {
+    if (cash < wager) {
+      showAlert("Not enough cash to double down!", "warning");
+      return;
+    }
+    cash -= wager;
+    wager *= 2;
+    updateDisplays();
+    hit();
+    if (playerPoints <= 21) stand();
+  });
+
+  // Split (not implemented)
+  $split.click(() => alert("Split not implemented in this demo."));
+
+  // Insurance (not implemented)
+  $insurance.click(() => alert("Insurance not implemented in this demo."));
+
+  // New game from modal
+  $newGame.click(() => {
+    cash = 1000;
+    bank = 0;
+    wager = 100;
+    $wager.val(wager);
+    updateDisplays();
+    clearHands();
+    clearAlert();
+    resetButtons();
+    $deal.prop('disabled', false);
+    $modal.modal('hide');
+  });
+
+  // Cancel modal
+  $cancel.click(() => {
+    $modal.modal('hide');
+  });
+
+  // Deal, Hit, Stand buttons
+  $deal.click(deal);
+  $hit.click(hit);
+  $stand.click(stand);
+
+  // Wager input validation (only numbers)
+  $wager.on('input', function () {
+    this.value = this.value.replace(/[^0-9]/g, '');
+  });
+
+  // Initialize values and UI on load
+  $wager.val(wager);
+  updateDisplays();
+  resetButtons();
+
+});
+</script>
+
 </body>
 </html>
