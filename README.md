@@ -16,7 +16,7 @@ Welcome to **My Web Hub** — a central place for my web projects, where I build
 - **Link Tree**  
   A simple link tree to organize and navigate through my different projects and resources.
 
-  - **Game Hub**
+- **Game Hub**
   As of right now just one game, so not a hub; it's blackjack.
 
 ## Live Demo
