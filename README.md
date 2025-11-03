@@ -5,16 +5,19 @@ Welcome to **My Web Hub** — a central place for my web projects, where I build
 ## Subsites & Projects
 
 - **Placeable Uncooked Chicken Clicker**  
-  A clicker game where chickens rule. Simple, fun, and dangerously addictive.
+  A clicker game where chickens rule. Simple, fun, and dangerously addictive. (bugged)
 
-- **Generic Basic Simple AI Chat Bot**  
-  A straightforward chatbot that simulates conversation. It’s basic, but it works.
+- **Assignment Tracker**  
+ Tracks assignments needed to complete in a given timeframe for the core four classes to be on track.
 
-- **WIP Soundboard**  
-  A work-in-progress soundboard. Expect some chaos once it’s finished.
+- **Snake Game**  
+  Snake with powerups and obstacles
 
 - **Link Tree**  
   A simple link tree to organize and navigate through my different projects and resources.
+
+  - **Game Hub**
+  As of right now just one game, so not a hub; it's blackjack.
 
 ## Live Demo
 
