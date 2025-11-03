@@ -1,0 +1,72 @@
+/* === Global Dark Mode === */
+body {
+    background-color: #121212;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 1rem;
+}
+
+/* Rounded corners for everything */
+*, *::before, *::after {
+    border-radius: 12px;
+    box-sizing: border-box;
+}
+
+/* Forms and inputs */
+input, select, textarea, button {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    border: 1px solid #333;
+    padding: 0.5rem;
+    margin: 0.25rem 0;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+input:focus, textarea:focus {
+    border-color: #bb86fc;
+    box-shadow: 0 0 5px #bb86fc;
+}
+
+button {
+    cursor: pointer;
+    border: none;
+    background-color: #333;
+    color: #fff;
+}
+
+button:hover {
+    background-color: #444;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    background-color: #1e1e1e;
+}
+
+th, td {
+    border: 1px solid #333;
+    padding: 0.5rem;
+    text-align: center;
+}
+
+th {
+    background-color: #2c2c2c;
+}
+
+/* Headings */
+h2, h3, h4 {
+    color: #bb86fc;
+}
+
+/* Form sections / containers */
+form, #assignmentsSection, #results {
+    background-color: #1a1a1a;
+    padding: 1rem;
+    margin-top: 1rem;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
