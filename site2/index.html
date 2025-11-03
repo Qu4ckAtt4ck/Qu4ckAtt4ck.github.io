@@ -1,164 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Chatbot</title>
-  <script src="https://js.puter.com/v2/"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 50px;
-      background-color: #121212;
-      color: #ffffff;
-    }
-    #chatContainer {
-      width: 60%;
-      margin: auto;
-      border: 2px solid #444;
-      padding: 20px;
-      border-radius: 15px;
-      background-color: #1e1e1e;
-      text-align: left;
-      max-height: 400px;
-      overflow-y: auto;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-    }
-    .userMessage {
-      color: #1e90ff;
-      font-weight: bold;
-    }
-    .botMessage {
-      color: #32cd32;
-      font-weight: bold;
-    }
-    #messageInput {
-      width: 70%;
-      padding: 10px;
-      border-radius: 15px;
-      border: 1px solid #444;
-      background-color: #333;
-      color: #fff;
-    }
-    #submitButton, #clearButton {
-      padding: 10px 15px;
-      cursor: pointer;
-      margin: 5px;
-      border-radius: 15px;
-      border: none;
-      background-color: #444;
-      color: white;
-      font-weight: bold;
-    }
-    #submitButton:hover, #clearButton:hover {
-      background-color: #555;
-    }
-    #submitButton:active, #clearButton:active {
-      background-color: #666;
-    }
-    h1 {
-      color: #1e90ff; /* Blue color matching the boxes around the Chicken Clicker upgrades */
-      font-size: 2.5rem;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Assignment Tracker</title>
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css">
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
 </head>
 <body>
-  <h1>AI Chatbot</h1>
-  <div id="chatContainer">
-    <div id="chatHistory"></div> <!-- Chat history appears here -->
-  </div>
-  <input type="text" id="messageInput" placeholder="Ask me anything..." />
-  <button id="submitButton">Send</button>
-  <button id="clearButton">Clear Chat</button>
+    <h1>Assignment Tracker</h1>
+    
+    <py-script>
+# ------------------------------
+# Dynamic daily requirements
+# ------------------------------
+classes = ["English", "Math", "Science", "History"]
+DAILY_REQ = {}
+for cls in classes:
+    DAILY_REQ[cls] = int(input(f"How many {cls} assignments per day? "))
 
-  <script>
-    const chatHistory = document.getElementById('chatHistory');
-    const messageInput = document.getElementById('messageInput');
-    const submitButton = document.getElementById('submitButton');
-    const clearButton = document.getElementById('clearButton');
+# ------------------------------
+# Backlog calculation
+# ------------------------------
+def calculate_day_backlog(done, daily_req):
+    if done == daily_req:
+        return 0
+    elif done > daily_req:
+        return -(done - daily_req)
+    else:
+        return daily_req - done
 
-    // This variable will hold the conversation context (persisted in localStorage)
-    let conversationContext = localStorage.getItem('chatContext') || "";
+# ------------------------------
+# Get assignments per class per day
+# ------------------------------
+def get_assignments_per_class(num_days, classes):
+    assignments_done = {cls: [] for cls in classes}
+    day_list = [i + 1 for i in range(num_days)]
+    for day in day_list:
+        print(f"\n--- Day {day} ---")
+        for cls in classes:
+            while True:
+                try:
+                    done = int(input(f"For {cls}, enter assignments done on day {day}: "))
+                    if done < 0:
+                        print("Enter a non-negative integer.")
+                        continue
+                    assignments_done[cls].append(done)
+                    break
+                except:
+                    print("Enter a valid integer.")
+    return assignments_done
 
-    // Load chat history from localStorage (UI) 
-    function loadChatHistory() {
-      const storedChat = localStorage.getItem('chatHistory');
-      if (storedChat) {
-        chatHistory.innerHTML = storedChat;
-        chatHistory.scrollTop = chatHistory.scrollHeight; // Auto-scroll to latest message
-      }
-    }
+# ------------------------------
+# Calculate total assignments for today
+# ------------------------------
+def assignments_to_do_today(assignments_done):
+    today_totals = {}
+    for cls, done_list in assignments_done.items():
+        daily_req = DAILY_REQ[cls]
+        backlog = sum([calculate_day_backlog(done, daily_req) for done in done_list])
+        today_totals[cls] = daily_req + backlog
+    return today_totals
 
-    // Save chat history (UI) to localStorage
-    function saveChatHistory() {
-      localStorage.setItem('chatHistory', chatHistory.innerHTML);
-    }
+# ------------------------------
+# Main execution
+# ------------------------------
+num_days = int(input("Today is the x-th day of the timeframe, meaning you've done work for x-1 days. What is x? "))
+assignments_done = get_assignments_per_class(num_days - 1, classes)
+today_totals = assignments_to_do_today(assignments_done)
 
-    // Save conversation context (for AI prompt) to localStorage
-    function saveConversationContext() {
-      localStorage.setItem('chatContext', conversationContext);
-    }
+print("\nTotal assignments to do today (daily minimum + backlog):")
+for cls, total in today_totals.items():
+    print(f"{cls}: {total}")
 
-    // Append message to chat UI and update conversation context
-    function appendMessage(sender, message) {
-      const messageHTML = `<p class="${sender === 'You' ? 'userMessage' : 'botMessage'}">${sender}: ${message}</p>`;
-      chatHistory.innerHTML += messageHTML;
-      conversationContext += `${sender}: ${message}\n`;
-      saveChatHistory();
-      saveConversationContext();
-      chatHistory.scrollTop = chatHistory.scrollHeight;
-    }
-
-    // When the page loads, load the chat history UI
-    loadChatHistory();
-
-    // Send message function
-    submitButton.addEventListener('click', function() {
-      const userMessage = messageInput.value.trim();
-      if (userMessage === '') return;
-
-      // Append user's message to UI and conversation context
-      appendMessage('You', userMessage);
-
-      // Show bot is thinking (temporary placeholder)
-      chatHistory.innerHTML += `<p class="botMessage">Bot: Thinking...</p>`;
-      chatHistory.scrollTop = chatHistory.scrollHeight;
-
-      // Create a prompt that includes conversation context and the new user message
-      const prompt = conversationContext + "You: " + userMessage;
-
-      // Call AI with the conversation context as prompt
-      puter.ai.chat(prompt)
-        .then(response => {
-          // Remove "Thinking..." message
-          const lastMsg = chatHistory.lastChild;
-          if (lastMsg && lastMsg.textContent.includes("Thinking...")) {
-            lastMsg.remove();
-          }
-          // Append bot's response
-          appendMessage('Bot', response);
-        })
-        .catch(error => {
-          // Remove "Thinking..." message
-          const lastMsg = chatHistory.lastChild;
-          if (lastMsg && lastMsg.textContent.includes("Thinking...")) {
-            lastMsg.remove();
-          }
-          appendMessage('Bot', "Error: " + error.message);
-        });
-
-      // Clear the input field
-      messageInput.value = '';
-    });
-
-    // Clear chat history and conversation context
-    clearButton.addEventListener('click', function() {
-      chatHistory.innerHTML = '';
-      conversationContext = '';
-      localStorage.removeItem('chatHistory');
-      localStorage.removeItem('chatContext');
-    });
-  </script>
+    </py-script>
 </body>
 </html>
