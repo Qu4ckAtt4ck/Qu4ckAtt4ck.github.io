@@ -1,77 +1,96 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Assignment Tracker</title>
-    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css">
-    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assignment Calculator</title>
+<!-- Link your dark mode CSS -->
+<link rel="stylesheet" href="darkmode.css">
 </head>
 <body>
-    <h1>Assignment Tracker</h1>
-    
-    <py-script>
-# ------------------------------
-# Dynamic daily requirements
-# ------------------------------
-classes = ["English", "Math", "Science", "History"]
-DAILY_REQ = {}
-for cls in classes:
-    DAILY_REQ[cls] = int(input(f"How many {cls} assignments per day? "))
 
-# ------------------------------
-# Backlog calculation
-# ------------------------------
-def calculate_day_backlog(done, daily_req):
-    if done == daily_req:
-        return 0
-    elif done > daily_req:
-        return -(done - daily_req)
-    else:
-        return daily_req - done
+<h2>Daily Assignment Calculator</h2>
 
-# ------------------------------
-# Get assignments per class per day
-# ------------------------------
-def get_assignments_per_class(num_days, classes):
-    assignments_done = {cls: [] for cls in classes}
-    day_list = [i + 1 for i in range(num_days)]
-    for day in day_list:
-        print(f"\n--- Day {day} ---")
-        for cls in classes:
-            while True:
-                try:
-                    done = int(input(f"For {cls}, enter assignments done on day {day}: "))
-                    if done < 0:
-                        print("Enter a non-negative integer.")
-                        continue
-                    assignments_done[cls].append(done)
-                    break
-                except:
-                    print("Enter a valid integer.")
-    return assignments_done
+<form id="dailyReqForm">
+  <h3>Daily Required Assignments</h3>
+  <label>English: <input type="number" min="0" id="englishReq" value="0"></label><br>
+  <label>Math: <input type="number" min="0" id="mathReq" value="0"></label><br>
+  <label>Science: <input type="number" min="0" id="scienceReq" value="0"></label><br>
+  <label>History: <input type="number" min="0" id="historyReq" value="0"></label><br>
+  <button type="button" onclick="setupDays()">Set Number of Days</button>
+</form>
 
-# ------------------------------
-# Calculate total assignments for today
-# ------------------------------
-def assignments_to_do_today(assignments_done):
-    today_totals = {}
-    for cls, done_list in assignments_done.items():
-        daily_req = DAILY_REQ[cls]
-        backlog = sum([calculate_day_backlog(done, daily_req) for done in done_list])
-        today_totals[cls] = daily_req + backlog
-    return today_totals
+<div id="assignmentsSection" style="display:none;">
+  <h3>Assignments Done for Previous Days</h3>
+  <div id="assignmentsInputs"></div>
+  <button onclick="calculateTotals()">Calculate Today's Totals</button>
+</div>
 
-# ------------------------------
-# Main execution
-# ------------------------------
-num_days = int(input("Today is the x-th day of the timeframe, meaning you've done work for x-1 days. What is x? "))
-assignments_done = get_assignments_per_class(num_days - 1, classes)
-today_totals = assignments_to_do_today(assignments_done)
+<h3>Results</h3>
+<div id="results"></div>
 
-print("\nTotal assignments to do today (daily minimum + backlog):")
-for cls, total in today_totals.items():
-    print(f"{cls}: {total}")
+<script>
+let DAILY_REQ = {};
+let numDays = 0;
+let classes = ["English", "Math", "Science", "History"];
 
-    </py-script>
+function setupDays() {
+  DAILY_REQ = {
+    English: parseInt(document.getElementById("englishReq").value) || 0,
+    Math: parseInt(document.getElementById("mathReq").value) || 0,
+    Science: parseInt(document.getElementById("scienceReq").value) || 0,
+    History: parseInt(document.getElementById("historyReq").value) || 0,
+  };
+
+  do {
+    numDays = parseInt(prompt("Today is the x-th day of the timeframe, meaning you've done work for x-1 days. What is x?"));
+  } while (isNaN(numDays) || numDays < 1);
+
+  const prevDays = numDays - 1;
+
+  let html = "";
+  for (let day = 1; day <= prevDays; day++) {
+    html += `<h4>Day ${day}</h4>`;
+    classes.forEach(cls => {
+      html += `<label>${cls}: <input type="number" min="0" data-class="${cls}" data-day="${day}" value="0"></label><br>`;
+    });
+  }
+
+  document.getElementById("assignmentsInputs").innerHTML = html;
+  document.getElementById("assignmentsSection").style.display = prevDays > 0 ? "block" : "none";
+}
+
+function calculateDayBacklog(done, daily) {
+  if (done === daily) return 0;
+  return done > daily ? -(done - daily) : daily - done;
+}
+
+function calculateTotals() {
+  const assignmentsDone = {};
+  classes.forEach(cls => assignmentsDone[cls] = []);
+
+  const inputs = document.querySelectorAll("#assignmentsInputs input");
+  inputs.forEach(input => {
+    const cls = input.dataset.class;
+    const val = parseInt(input.value) || 0;
+    assignmentsDone[cls].push(val);
+  });
+
+  const todayTotals = {};
+  classes.forEach(cls => {
+    const dailyReq = DAILY_REQ[cls];
+    const backlog = assignmentsDone[cls].reduce((sum, done) => sum + calculateDayBacklog(done, dailyReq), 0);
+    todayTotals[cls] = Math.max(dailyReq + backlog, 0);
+  });
+
+  let resultHtml = "<table><tr><th>Class</th><th>Assignments Today</th></tr>";
+  classes.forEach(cls => {
+    resultHtml += `<tr><td>${cls}</td><td>${todayTotals[cls]}</td></tr>`;
+  });
+  resultHtml += "</table>";
+  document.getElementById("results").innerHTML = resultHtml;
+}
+</script>
+
 </body>
 </html>
