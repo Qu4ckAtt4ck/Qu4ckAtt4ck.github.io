@@ -17,17 +17,23 @@
     <button id="joinBtn">Join Game</button>
 </div>
 
+<!-- HOST ANSWER & ICE -->
+<div id="hostAnswerDiv" style="display:none; margin-top:10px;">
+    <textarea id="hostAnswerInput" placeholder="Paste Base64 answer from joiner"></textarea>
+    <button id="hostAnswerBtn">Submit Answer</button>
+</div>
+<div id="hostIceDiv" style="display:none; margin-top:10px;">
+    <textarea id="hostIceInput" placeholder="Paste Base64 ICE candidates from joiner"></textarea>
+    <button id="hostIceBtn">Submit ICE</button>
+</div>
+
 <script type="module">
 // ===================== IMPORT HELPERS =====================
 import { logTerminal, clearTerminal, showHelp, showTutorial } from "./frontend/cli_helper.js";
 
 const termContainer = document.getElementById("terminal-container");
 const term = document.getElementById("terminal");
-
-function log(msg, options={}) {
-    logTerminal(term, msg, options);
-    term.scrollTop = term.scrollHeight;
-}
+function log(msg, options={}) { logTerminal(term, msg, options); term.scrollTop = term.scrollHeight; }
 function clear() { clearTerminal(term); }
 
 // ===================== PYODIDE =====================
@@ -61,20 +67,20 @@ import("https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.mjs")
     .then(() => initPyodide());
 
 // ===================== WEBRTC =====================
-let pc, dataChannel, isHost = false;
+let pc, dataChannel, isHost=false;
 let iceCandidates = [];
 
 function setupPeerConnection(){
-    pc = new RTCPeerConnection();
-    pc.onicecandidate = e => { 
-        if(e.candidate) iceCandidates.push(e.candidate); 
-    };
+    const config = { iceServers: [{urls:"stun:stun.l.google.com:19302"}] };
+    pc = new RTCPeerConnection(config);
+    pc.onicecandidate = e => { if(e.candidate) iceCandidates.push(e.candidate); };
 }
 
-document.getElementById("hostBtn").onclick = async () => {
+// ===================== HOST =====================
+document.getElementById("hostBtn").onclick = async ()=>{
     if(!pyodideReady) return log("Pyodide not ready");
     isHost = true;
-    termContainer.style.display = "block";
+    termContainer.style.display="block";
     clear();
     log("Hosting game...\n", {highlight:true});
     document.getElementById("controls").style.display="none";
@@ -91,13 +97,38 @@ document.getElementById("hostBtn").onclick = async () => {
     log("============================\n", {highlight:true});
 
     showHelp(term, true);
+
+    // show host answer & ICE input
+    document.getElementById("hostAnswerDiv").style.display="block";
+    document.getElementById("hostIceDiv").style.display="block";
 };
 
-document.getElementById("joinBtn").onclick = async () => {
+document.getElementById("hostAnswerBtn").onclick = async ()=>{
+    const b64 = document.getElementById("hostAnswerInput").value.trim();
+    if(!b64) return log("Paste Base64 answer first!");
+    try{
+        const answer = JSON.parse(atob(b64));
+        await pc.setRemoteDescription(answer);
+        log("Remote description set!", {highlight:true});
+    } catch(err){ log("Error setting remote description: "+err); }
+};
+
+document.getElementById("hostIceBtn").onclick = async ()=>{
+    const b64 = document.getElementById("hostIceInput").value.trim();
+    if(!b64) return log("Paste Base64 ICE candidates first!");
+    try{
+        const candidates = JSON.parse(atob(b64));
+        for(const c of candidates) await pc.addIceCandidate(c);
+        log("All ICE candidates added!", {highlight:true});
+    } catch(err){ log("Error adding ICE candidates: "+err); }
+};
+
+// ===================== JOIN =====================
+document.getElementById("joinBtn").onclick = async ()=>{
     if(!pyodideReady) return log("Pyodide not ready");
     const gameIdInput = document.getElementById("gameId").value.trim();
     if(!gameIdInput) return log("Enter a game ID first!");
-    termContainer.style.display = "block";
+    termContainer.style.display="block";
     clear();
     log("Joining game...\n", {highlight:true});
     document.getElementById("controls").style.display="none";
@@ -113,9 +144,12 @@ document.getElementById("joinBtn").onclick = async () => {
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
 
-    const answerId = btoa(JSON.stringify(answer));
-    log("=== JOINED GAME ===\nBase64 Answer ID (send to host):\n"+answerId, {highlight:true});
-    showHelp(term, false);
+    const answerB64 = btoa(JSON.stringify(answer));
+    const iceB64 = btoa(JSON.stringify(iceCandidates));
+    log("=== JOINED GAME ===", {highlight:true});
+    log("Base64 Answer:\n"+answerB64, {highlight:true});
+    log("Base64 ICE candidates:\n"+iceB64, {highlight:true});
+    showHelp(term,false);
 };
 
 // ===================== TERMINAL INPUT =====================
@@ -128,8 +162,8 @@ Object.assign(cmdInput.style,{
 termContainer.appendChild(cmdInput);
 cmdInput.focus();
 
-cmdInput.addEventListener("keydown", async e => {
-    if(e.key !== "Enter") return;
+cmdInput.addEventListener("keydown", async e=>{
+    if(e.key!=="Enter") return;
     const cmd = e.target.value.trim();
     e.target.value = "";
     if(!cmd) return;
@@ -142,22 +176,55 @@ function handleMessage(msg){
     log("[REMOTE] "+msg);
 }
 
+// ===================== ASCII SCALING =====================
+window.addEventListener("resize", scaleAscii);
+function scaleAscii(){
+    if(!term.textContent) return;
+    term.style.fontSize = Math.min(window.innerWidth/150, window.innerHeight/75)+"px";
+}
+
+// ===================== COMMAND HANDLER =====================
+async function handleCommand(cmd){
+    if(!pyodideReady) return log("Pyodide not ready");
+    try{
+        if(cmd.startsWith("/help")) showHelp(term, isHost);
+        else if(cmd.startsWith("/tut")) showTutorial(term,isHost,dataChannel);
+        else if(cmd.startsWith("/create_char")){
+            const parts = cmd.split(" ");
+            const charName = parts[1];
+            if(!charName) return log("Usage: /create_char CHAR_NAME");
+            await createCharFlow(charName);
+        }
+        else if(cmd.startsWith("/load_char")){
+            const b64 = cmd.split(" ")[1];
+            if(!b64) return log("Usage: /load_char BASE64_STRING");
+            await loadChar(b64);
+        }
+        else{
+            let res = await pyodide.runPythonAsync(cmd);
+            if(res!==undefined) log(String(res));
+        }
+
+        if(dataChannel && dataChannel.readyState==="open") dataChannel.send(cmd);
+
+    } catch(err){ log("Error: "+err); }
+}
+
 // ===================== CHARACTER CREATION =====================
 async function createCharFlow(charName){
     if(!pyodideReady) return log("Pyodide not ready");
 
     function getInput(promptText){
-        return new Promise(resolve => {
-            log(promptText, {highlight:true});
-            cmdInput.disabled = false;
-
-            const handler = e => {
-                if(e.key !== "Enter") return;
-                const val = e.target.value.trim();
+        return new Promise(resolve=>{
+            log(promptText,{highlight:true});
+            cmdInput.disabled=false;
+            const handler = e=>{
+                if(e.key!=="Enter") return;
+                const val=e.target.value.trim();
                 if(!val) return;
-                e.target.value = "";
+                e.target.value="";
                 cmdInput.removeEventListener("keydown", handler);
-                cmdInput.disabled = true;
+                cmdInput.disabled=true;
                 resolve(val);
             };
             cmdInput.addEventListener("keydown", handler);
@@ -171,7 +238,7 @@ async function createCharFlow(charName){
         while(true){
             const classesInput = await getInput("Enter Classes (comma-separated):");
             classesList = classesInput.split(",").map(c=>c.trim()).filter(Boolean);
-            if(classesList.length > 0) break;
+            if(classesList.length>0) break;
             log("Invalid input. Must enter at least one class.");
         }
 
@@ -202,7 +269,7 @@ abilities = {s:sum(sorted([random.randint(1,6) for _ in range(4)])[1:]) for s in
                 while(true){
                     const val = parseInt(await getInput(`Enter value for ${stat}:`));
                     if(!isNaN(val)){
-                        abilities[stat] = val;
+                        abilities[stat]=val;
                         break;
                     }
                     log("Must enter integer.");
@@ -224,7 +291,7 @@ base64_str = base64.b64encode(json.dumps(c.__dict__).encode()).decode()
 base64_str
 `;
         const b64 = await pyodide.runPythonAsync(pyCmd);
-        log("Character created! Copy this Base64 string to load later:\n"+b64, {highlight:true});
+        log("Character created! Copy this Base64 string to load later:\n"+b64,{highlight:true});
 
     } catch(err){ log("Error during character creation: "+err); }
 }
@@ -239,49 +306,13 @@ data=json.loads(base64.b64decode("${b64}").decode())
 data
 `;
         const loaded = await pyodide.runPythonAsync(pyCmd);
-        log("--- Character Loaded ---", {highlight:true});
+        log("--- Character Loaded ---",{highlight:true});
         for(const [k,v] of Object.entries(loaded)){
-            log(`${k}: ${typeof v === "object" ? JSON.stringify(v) : v}`);
+            log(`${k}: ${typeof v==="object"?JSON.stringify(v):v}`);
         }
     } catch(err){ log("Error loading character: "+err); }
 }
 
-// ===================== COMMAND HANDLER =====================
-async function handleCommand(cmd){
-    if(!pyodideReady) return log("Pyodide not ready");
-
-    try{
-        if(cmd.startsWith("/help")){
-            showHelp(term, isHost);
-        } else if(cmd.startsWith("/tut")){
-            showTutorial(term, isHost, dataChannel);
-        } else if(cmd.startsWith("/create_char")){
-            const parts = cmd.split(" ");
-            const charName = parts[1];
-            if(!charName) return log("Usage: /create_char CHAR_NAME");
-            await createCharFlow(charName);
-
-        } else if(cmd.startsWith("/load_char")){
-            const b64 = cmd.split(" ")[1];
-            if(!b64) return log("Usage: /load_char BASE64_STRING");
-            await loadChar(b64);
-
-        } else {
-            let res = await pyodide.runPythonAsync(cmd);
-            if(res !== undefined) log(String(res));
-        }
-
-        if(dataChannel && dataChannel.readyState==="open") dataChannel.send(cmd);
-
-    } catch(err){ log("Error: "+err); }
-}
-
-// ===================== ASCII SCALING =====================
-window.addEventListener("resize", scaleAscii);
-function scaleAscii(){
-    if(!term.textContent) return;
-    term.style.fontSize = Math.min(window.innerWidth/150, window.innerHeight/75) + "px";
-}
 </script>
 </body>
 </html>
