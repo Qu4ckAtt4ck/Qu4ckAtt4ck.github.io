@@ -12,79 +12,57 @@
 </div>
 
 <div id="controls">
-    <input id="gameId" placeholder="Enter Game ID">
+    <input id="gameId" placeholder="Enter game ID">
     <button id="hostBtn">Host Game</button>
     <button id="joinBtn">Join Game</button>
 </div>
 
 <script type="module">
-// ===== HELPERS =====
-import { logTerminal, clearTerminal, showHelp } from "frontend/cli_helper.js";
+// ===================== IMPORT HELPERS =====================
+import { logTerminal, clearTerminal, showHelp, showTutorial } from "./frontend/cli_helper.js";
 
 const termContainer = document.getElementById("terminal-container");
 const term = document.getElementById("terminal");
-function log(msg, options={}) { logTerminal(term,msg,options); }
+
+function log(msg, options={}) { logTerminal(term, msg, options); }
 function clear() { clearTerminal(term); }
 
-// ===== PYODIDE =====
-let pyodideReady=false;
+// ===================== PYODIDE =====================
+let pyodideReady = false;
+
 async function initPyodide(){
     log("Loading Pyodide...");
     window.pyodide = await loadPyodide({indexURL:"https://cdn.jsdelivr.net/pyodide/v0.24.1/full/"});
-    pyodideReady=true;
-    log("Pyodide ready.");
+    pyodideReady = true;
+    log("Pyodide ready.\n");
 
     await pyodide.runPythonAsync(`
 import sys
-sys.path.insert(0,"/dnd_engine")
+sys.path.insert(0,"dnd_engine")
 import engine
-all_chars = {}
-combat = None
-dm = None
-    `);
+`);
     log("Engine loaded.\n");
 
-    // Load ASCII art
-    const ascii = await (await fetch("frontend/ascii.txt")).text();
-    log(ascii,{highlight:true});
+    const asciiResponse = await fetch("frontend/ascii.txt");
+    const asciiArt = await asciiResponse.text();
+    log(asciiArt, {highlight:true});
+    scaleAscii();
 }
 
-// Load Pyodide dynamically
 const pyScript = document.createElement("script");
-pyScript.src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js";
-pyScript.onload=initPyodide;
+pyScript.src = "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js";
+pyScript.onload = initPyodide;
 document.body.appendChild(pyScript);
 
-// ===== WEBRTC =====
-let pc, dataChannel, isHost=false;
-let AUTO_TURN_INTERVAL = 15;
-let autoTurnTimer;
+// ===================== WEBRTC =====================
+let pc, dataChannel, isHost = false;
 
-function startAutoTurns(){
-    if(!isHost) return;
-    if(autoTurnTimer) clearInterval(autoTurnTimer);
-    autoTurnTimer = setInterval(async ()=>{
-        if(!pyodideReady) return;
-        try{
-            const next = await pyodide.runPythonAsync(`
-if combat and combat.turn_order:
-    combat.turn_order.append(combat.turn_order.pop(0))
-    combat.turn_order[0]
-else: None
-            `);
-            if(next) log("Next turn: "+next,{highlight:true});
-            if(dataChannel?.readyState==="open") dataChannel.send(`/next_turn ${next}`);
-        } catch(err){ log("Error advancing turn: "+err); }
-    }, AUTO_TURN_INTERVAL*1000);
-}
-
-// ===== HOST GAME =====
-document.getElementById("hostBtn").onclick=async()=>{
+document.getElementById("hostBtn").onclick = async () => {
     if(!pyodideReady) return log("Pyodide not ready");
-    isHost=true;
-    termContainer.style.display="block";
+    isHost = true;
+    termContainer.style.display = "block";
     clear();
-    log("Hosting game...",{highlight:true});
+    log("Hosting game...\n", {highlight:true});
 
     pc = new RTCPeerConnection();
     dataChannel = pc.createDataChannel("dnd");
@@ -93,24 +71,23 @@ document.getElementById("hostBtn").onclick=async()=>{
 
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
-    log("=== HOST GAME ID (Base64) ===",{highlight:true});
-    log(btoa(JSON.stringify(offer)),{highlight:true});
-    log("============================",{highlight:true});
+    const gameId = btoa(JSON.stringify(offer));
+    log("=== HOST GAME ID (Base64) ===", {highlight:true});
+    log(gameId, {highlight:true});
+    log("============================\n", {highlight:true});
 
-    showHelp(term,true);
-    startAutoTurns();
+    showHelp(term, true);
 };
 
-// ===== JOIN GAME =====
-document.getElementById("joinBtn").onclick=async()=>{
+document.getElementById("joinBtn").onclick = async () => {
     if(!pyodideReady) return log("Pyodide not ready");
-    const gameId = document.getElementById("gameId").value.trim();
-    if(!gameId) return log("Enter Game ID!");
-    termContainer.style.display="block";
+    const gameIdInput = document.getElementById("gameId").value.trim();
+    if(!gameIdInput) return log("Enter a game ID first!");
+    termContainer.style.display = "block";
     clear();
-    log("Joining game...",{highlight:true});
+    log("Joining game...\n", {highlight:true});
 
-    const offer = JSON.parse(atob(gameId));
+    const offer = JSON.parse(atob(gameIdInput));
     pc = new RTCPeerConnection();
     pc.ondatachannel = ev => {
         dataChannel = ev.channel;
@@ -121,72 +98,155 @@ document.getElementById("joinBtn").onclick=async()=>{
     await pc.setRemoteDescription(offer);
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
-    log("=== JOINED GAME ===",{highlight:true});
-    showHelp(term,false);
+
+    log("=== JOINED GAME ===\n", {highlight:true});
+    showHelp(term, false);
 };
 
-// ===== CLI INPUT =====
+// ===================== TERMINAL INPUT =====================
 const cmdInput = document.createElement("input");
-cmdInput.placeholder="Type command...";
-cmdInput.style.width="100%";
+cmdInput.placeholder = "Type command here...";
+cmdInput.style.width = "90%";
+cmdInput.style.background = "#111";
+cmdInput.style.color = "#0f0";
+cmdInput.style.border = "1px solid #0f0";
+cmdInput.style.borderRadius = "8px";
+cmdInput.style.fontFamily = "'VT323', monospace";
+cmdInput.style.fontSize = "1.1em";
+cmdInput.style.marginTop = "10px";
 termContainer.appendChild(cmdInput);
-cmdInput.addEventListener("keydown", async(e)=>{
-    if(e.key!=="Enter") return;
-    const cmd = e.target.value.trim();
-    e.target.value="";
-    log("> "+cmd);
-    await handleCommand(cmd);
-});
-termContainer.addEventListener("click",()=>cmdInput.focus());
+cmdInput.focus();
 
-async function handleCommand(cmd){
-    if(!pyodideReady) return log("Pyodide not ready");
-    if(cmd.startsWith("/help")){
-        showHelp(term,isHost);
-        return;
-    }
-    if(cmd.startsWith("/tut")){
-        if(isHost){
-            log("DM Tutorial: You can control turns, HP, conditions, etc.",{dm:true});
-            if(dataChannel?.readyState==="open") dataChannel.send("PLAYER TUTORIAL: Use /roll, /attack, /cast_spell, /list");
-        }
-        return;
-    }
-    if(cmd.startsWith("/roll") || cmd.startsWith("/attack") || cmd.startsWith("/cast_spell") || cmd.startsWith("/list") || cmd.startsWith("/next_turn")){
-        if(isHost){
-            try{
-                const res = await pyodide.runPythonAsync(cmd.replace("/",""));
-                log(String(res));
-                if(dataChannel?.readyState==="open") dataChannel.send(cmd);
-            }catch(err){ log("Python Error: "+err); }
-        } else {
-            if(dataChannel?.readyState==="open") dataChannel.send(cmd);
-        }
-        return;
-    }
-    if(cmd.startsWith("/create_char")){
-        try{
-            const jsonStr = cmd.slice(12).trim();
-            await pyodide.runPythonAsync(`import base64
-import json
-cdata = json.loads('${jsonStr}')
-all_chars[cdata["name"]] = engine.Character(cdata["name"],cdata["race"],list(cdata["classes"].keys())[0])
-            `);
-            log("Character created.",{highlight:true});
-            if(dataChannel?.readyState==="open") dataChannel.send(cmd);
-        } catch(err){ log("Error creating char: "+err); }
-        return;
-    }
-    log("Unknown command.");
+cmdInput.addEventListener("keydown", async e => {
+    if(e.key !== "Enter") return;
+    const cmd = e.target.value.trim();
+    e.target.value = "";
+    if(!cmd) return;
+    log("> "+cmd);
+    handleCommand(cmd);
+});
+
+// ===================== MESSAGE HANDLER =====================
+function handleMessage(msg){
+    log("[REMOTE] "+msg);
 }
 
-// ===== HANDLE INCOMING MESSAGES =====
-function handleMessage(msg){
-    if(msg.startsWith("/next_turn")){
-        log(msg.replace("/next_turn ",""),{highlight:true});
-    } else {
-        log(msg);
-    }
+// ===================== COMMAND HANDLER =====================
+async function handleCommand(cmd){
+    if(!pyodideReady) return log("Pyodide not ready");
+
+    try{
+        if(cmd.startsWith("/help")){
+            showHelp(term, isHost);
+        } else if(cmd.startsWith("/tut")){
+            showTutorial(term, isHost, dataChannel);
+        } else if(cmd.startsWith("/create_char")){
+            const parts = cmd.split(" ");
+            const charName = parts[1];
+            if(!charName) return log("Usage: /create_char CHAR_NAME");
+
+            const pyCmd = `
+import json, base64
+from js import prompt
+
+name="${charName}"
+
+# --- RACE ---
+while True:
+    race = prompt("Enter Race (SRD/homebrew):")
+    try:
+        r_obj = engine.get_race(race)
+        break
+    except:
+        print("Invalid race. Try again.")
+
+# --- CLASSES ---
+while True:
+    classes_input = prompt("Enter Classes (comma-separated for multiclass):")
+    classes_list = [c.strip() for c in classes_input.split(",") if c.strip()]
+    try:
+        class_objs = [engine.get_class(c) for c in classes_list]
+        break
+    except:
+        print("Invalid class name(s). Try again.")
+
+# --- LEVELS ---
+levels_list = []
+for c in classes_list:
+    while True:
+        lvl = prompt(f"Enter level for {c}:")
+        try:
+            lvl = int(lvl)
+            if lvl < 1: raise ValueError()
+            levels_list.append(lvl)
+            break
+        except:
+            print("Invalid level. Must be integer >= 1.")
+
+# --- CREATE CHARACTER ---
+c = engine.Character(name, race, classes_list[0])
+c.classes = dict(zip(classes_list, levels_list))
+c.level = sum(levels_list)
+
+# --- ABILITIES ---
+assign_choice = prompt("Roll or manual assign abilities? (roll/manual)").lower()
+if assign_choice == "roll":
+    import random
+    c.abilities = {s:sum(sorted([random.randint(1,6) for _ in range(4)])[1:]) for s in ["STR","DEX","CON","INT","WIS","CHA"]}
+else:
+    for s in ["STR","DEX","CON","INT","WIS","CHA"]:
+        while True:
+            v = prompt(f"Enter value for {s}:")
+            try:
+                v=int(v)
+                c.abilities[s]=v
+                break
+            except:
+                print("Must be integer.")
+
+# --- HIT DICE & SPELL SLOTS ---
+c.hit_dice = [c.get_class(cls).get("hit_die",8) for cls in classes_list for _ in range(levels_list[classes_list.index(cls)])]
+c.spell_slots = {}
+
+# --- SAVE TO BASE64 ---
+b64 = base64.b64encode(json.dumps(c.__dict__).encode()).decode()
+b64
+`;
+            const b64 = await pyodide.runPythonAsync(pyCmd);
+            log("Character created! Base64 save string below (copy/paste to store):\n"+b64);
+
+        } else if(cmd.startsWith("/save_char")){
+            const charName = cmd.split(" ")[1];
+            if(!charName) return log("Usage: /save_char CHAR_NAME");
+            log("Saving character not fully implemented; use /create_char to generate Base64 save.");
+        } else if(cmd.startsWith("/load_char")){
+            const b64 = cmd.split(" ")[1];
+            if(!b64) return log("Usage: /load_char BASE64_STRING");
+            const pyCmd = `
+import json, base64
+data=json.loads(base64.b64decode("${b64}").decode())
+data
+`;
+            const loaded = await pyodide.runPythonAsync(pyCmd);
+            log("Character loaded:\n"+JSON.stringify(loaded));
+        } else {
+            let res = await pyodide.runPythonAsync(cmd);
+            if(res !== undefined) log(String(res));
+        }
+
+        if(dataChannel && dataChannel.readyState==="open"){
+            dataChannel.send(cmd);
+        }
+    } catch(err){ log("Error: "+err); }
+}
+
+// ===================== ASCII SCALING =====================
+window.addEventListener("resize", scaleAscii);
+
+function scaleAscii(){
+    const pre = term;
+    if(!pre.textContent) return;
+    pre.style.fontSize = Math.min(window.innerWidth/150, window.innerHeight/75) + "px";
 }
 </script>
 </body>
