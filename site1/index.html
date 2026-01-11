@@ -7,10 +7,12 @@
 </head>
 <body>
 
+<!-- TERMINAL -->
 <div id="terminal-container">
     <div id="terminal"></div>
 </div>
 
+<!-- LANDING PAGE -->
 <div id="controls">
     <input id="gameId" placeholder="Enter game ID">
     <button id="hostBtn">Host Game</button>
@@ -29,7 +31,6 @@ function log(msg, options={}) { logTerminal(term, msg, options); }
 // ===== FETCH ASCII =====
 async function getASCII() {
     try {
-        // Relative path works on username.github.io root
         const resp = await fetch("frontend/ascii.txt");
         if (!resp.ok) throw new Error("ASCII file not found");
         return await resp.text();
@@ -39,28 +40,26 @@ async function getASCII() {
     }
 }
 
-// ===== FULLSCREEN LOCK =====
+// ===== FULLSCREEN =====
 async function lockFullscreen() {
     if (!document.fullscreenElement) {
         try { await document.documentElement.requestFullscreen(); } catch {}
     }
 }
 
-// ===== TERMINAL MODE =====
-function enterTerminalMode() {
+// ===== ENTER TERMINAL MODE =====
+async function enterTerminalMode() {
     controls.style.display = "none";
-    termContainer.classList.add("active");
-    lockFullscreen();
-    termContainer.focus();
+    termContainer.style.display = "flex";
+    await lockFullscreen();
+    cmdInput.focus();
 }
 
 // ===== PYODIDE =====
 let pyodideReady = false;
 async function initPyodide() {
-    log("Starting engine...");
-    window.pyodide = await loadPyodide({
-        indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/"
-    });
+    log("Loading Pyodide...");
+    window.pyodide = await loadPyodide({indexURL:"https://cdn.jsdelivr.net/pyodide/v0.24.1/full/"});
     pyodideReady = true;
 
     await pyodide.runPythonAsync(`
@@ -68,7 +67,7 @@ import sys
 sys.path.insert(0,"dnd_engine")
 import engine
 `);
-    log("Engine started.");
+    log("Engine loaded.\n");
 }
 
 const pyScript = document.createElement("script");
@@ -79,42 +78,54 @@ document.body.appendChild(pyScript);
 // ===== WEBRTC =====
 let pc, dataChannel;
 
+// ===== CRT-STYLE LINE PRINTING =====
+async function printLines(lines, options={}) {
+    for (const line of lines) {
+        log(line, options);
+        await new Promise(r => setTimeout(r, Math.random() * 50 + 10));
+    }
+}
+
+// ===== HOST GAME =====
 async function startHost() {
-    enterTerminalMode();
+    await enterTerminalMode();
     clearTerminal(term);
 
     log("Booting WebRTC host...");
 
-    const asciiArt = await getASCII();
-    if (asciiArt) log(asciiArt, {highlight:true});
+    const ascii = await getASCII();
+    if (ascii) await printLines(ascii.split("\n"), {highlight:true});
 
     pc = new RTCPeerConnection();
     dataChannel = pc.createDataChannel("dnd");
     dataChannel.onmessage = e => log("[CLIENT] " + e.data);
+
+    pc.onicecandidate = e => {
+        if (e.candidate) log("ICE Candidate: " + JSON.stringify(e.candidate));
+    };
 
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
 
     const encoded = btoa(JSON.stringify(offer));
     log("Host ready.");
-    log("=== BASE64 GAME ID ===", {highlight:true});
-    log(encoded, {highlight:true});
-    log("=====================", {highlight:true});
+    await printLines(["=== BASE64 GAME ID ===", encoded, "====================="], {highlight:true});
 
     showHelp(term, true);
 }
 
+// ===== JOIN GAME =====
 async function joinGame() {
-    enterTerminalMode();
+    await enterTerminalMode();
     clearTerminal(term);
 
     const gameId = document.getElementById("gameId").value.trim();
     if (!gameId) return log("Enter a game ID first!");
 
-    log("Joining game...");
+    log("Connecting to host...");
 
-    const asciiArt = await getASCII();
-    if (asciiArt) log(asciiArt, {highlight:true});
+    const ascii = await getASCII();
+    if (ascii) await printLines(ascii.split("\n"), {highlight:true});
 
     const offer = JSON.parse(atob(gameId));
     pc = new RTCPeerConnection();
@@ -124,11 +135,15 @@ async function joinGame() {
         dataChannel.onmessage = e => log("[HOST] " + e.data);
     };
 
+    pc.onicecandidate = e => {
+        if (e.candidate) log("ICE Candidate: " + JSON.stringify(e.candidate));
+    };
+
     await pc.setRemoteDescription(offer);
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
 
-    log("Connected.");
+    log("Connected to host.");
     showHelp(term, false);
 }
 
@@ -150,8 +165,9 @@ cmdInput.style.background = "black";
 cmdInput.style.color = "#0f0";
 cmdInput.style.border = "none";
 cmdInput.style.outline = "none";
-cmdInput.style.fontFamily = "VT323, monospace";
+cmdInput.style.fontFamily = "'VT323', monospace";
 cmdInput.style.fontSize = "1.2em";
+cmdInput.style.width = "100%";
 
 termContainer.appendChild(cmdInput);
 cmdInput.focus();
@@ -162,6 +178,7 @@ cmdInput.addEventListener("keydown", async e => {
     cmdInput.value = "";
 
     log("> " + cmd);
+
     if (pyodideReady) {
         try {
             const res = await pyodide.runPythonAsync(cmd);
@@ -170,6 +187,7 @@ cmdInput.addEventListener("keydown", async e => {
             log("Error: " + err);
         }
     }
+
     if (dataChannel?.readyState === "open") dataChannel.send(cmd);
 });
 
