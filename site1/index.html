@@ -13,7 +13,7 @@
         <div id="terminal-wrapper">
             <div id="terminal"></div>
         </div>
-        <input id="cli-input" placeholder=">">
+        <input id="cli-input" placeholder="Type command here...">
     </div>
 </div>
 
@@ -47,23 +47,18 @@ async function getASCII() {
     }
 }
 
-// ===== LOCKED FULLSCREEN CRT MODE =====
+// ===== LOCKED CRT MODE =====
 async function enterTerminalMode() {
     controls.style.display = "none";
     termContainer.style.display = "flex";
 
-    // Lock scrolling
     document.body.style.overflow = "hidden";
-
-    // Prevent text selection
     document.body.style.userSelect = "none";
 
-    // Request fullscreen
     if (!document.fullscreenElement) {
         try { await document.documentElement.requestFullscreen(); } catch {}
     }
 
-    // Auto-focus CLI input
     cmdInput.focus();
 }
 
@@ -75,9 +70,69 @@ async function initPyodide() {
     pyodideReady = true;
 
     await pyodide.runPythonAsync(`
-import sys
+import sys, json, base64
 sys.path.insert(0,"dnd_engine")
 import engine
+combat = engine.Combat()
+dm = engine.DM(combat)
+characters = {}
+
+def create_char_full(name,race,classes,level=1,abilities=None,hp=None,hit_dice=None,conditions=None,spell_slots=None,homebrew=None):
+    char = engine.Character(name,race,list(classes.keys())[0],level)
+    char.classes = classes
+    if abilities: char.abilities = abilities
+    if hp: char.hp = hp
+    if hit_dice: char.hit_dice = hit_dice
+    if conditions: char.conditions = conditions
+    if spell_slots: char.spell_slots = spell_slots
+    if homebrew: char.homebrew_features = homebrew
+    characters[name] = char
+    return char
+
+def save_char(name):
+    if name not in characters: return "Character not found"
+    char = characters[name]
+    data = {
+        "name": char.name,
+        "race": char.race.data,
+        "classes": char.classes,
+        "level": char.level,
+        "hp": char.hp,
+        "hit_dice": char.hit_dice,
+        "abilities": char.abilities,
+        "conditions": char.conditions,
+        "spell_slots": char.spell_slots,
+        "homebrew_features": getattr(char,"homebrew_features",{})
+    }
+    return base64.b64encode(json.dumps(data).encode()).decode()
+
+def load_char(encoded):
+    data = json.loads(base64.b64decode(encoded))
+    return create_char_full(data['name'], data['race']['id'], data['classes'], data['level'],
+                            data['abilities'], data['hp'], data['hit_dice'], data['conditions'], data['spell_slots'],
+                            data.get('homebrew_features',{}))
+
+def tut(isDM=False):
+    if isDM:
+        return """DM Tutorial:
+- /roll XdY: Roll dice
+- /list monsters/spells/classes: Show entities
+- /create_char: Step-by-step full character creation
+- /set_hp /damage /heal /add_cond /remove_cond: Manage combat
+- /next_turn: Advance combat
+- /tut: Show this tutorial
+- /save_char NAME: Get Base64 save string
+- /load_char BASE64: Load saved character
+"""
+    else:
+        return """Player Tutorial:
+- /roll XdY: Roll dice
+- /cast SPELL [target]: Cast spell
+- /create_char: Step-by-step character creation
+- /save_char NAME: Copy Base64 save string
+- /load_char BASE64: Load saved character
+- /help: Show commands
+"""
 `);
     log("Engine loaded.\n");
 }
@@ -90,16 +145,7 @@ document.body.appendChild(pyScript);
 // ===== WEBRTC =====
 let pc, dataChannel;
 
-// ===== CRT-STYLE PRINTING =====
-async function printLines(lines, options={}) {
-    for (const line of lines) {
-        log(line, options);
-        await new Promise(r => setTimeout(r, Math.random() * 50 + 10));
-    }
-    scaleASCII();
-}
-
-// ===== SCALE ASCII PROPORTIONALLY + VERTICAL CENTER =====
+// ===== SCALE ASCII PROPORTIONALLY =====
 function scaleASCII() {
     const asciiText = term.textContent.split("\n");
     const originalWidth = 145;
@@ -107,7 +153,7 @@ function scaleASCII() {
 
     function applyScale() {
         const vw = window.innerWidth - 40;
-        const vh = window.innerHeight - 120; // input + padding
+        const vh = window.innerHeight - 120;
         const fontWidth = 0.6;
         const fontHeight = 1;
 
@@ -117,7 +163,6 @@ function scaleASCII() {
 
         wrapper.style.transform = `scale(${scale})`;
 
-        // vertical centering
         const wrapperHeight = originalHeight * 16 * scale;
         const containerHeight = window.innerHeight - 40;
         const topMargin = Math.max((containerHeight - wrapperHeight - 40)/2, 0);
@@ -130,34 +175,43 @@ function scaleASCII() {
 
 // ===== HOST GAME =====
 async function startHost() {
+    if (!pyodideReady) return log("Engine not ready.");
     await enterTerminalMode();
     clearTerminal(term);
 
     log("Booting WebRTC host...");
 
     const ascii = await getASCII();
-    if (ascii) await printLines(ascii.split("\n"), {highlight:true});
+    if (ascii) { log(ascii, {highlight:true}); scaleASCII(); }
 
     pc = new RTCPeerConnection();
     dataChannel = pc.createDataChannel("dnd");
-    dataChannel.onmessage = e => log("[CLIENT] " + e.data);
-
-    pc.onicecandidate = e => {
-        if (e.candidate) log("ICE Candidate: " + JSON.stringify(e.candidate));
+    dataChannel.onmessage = async e => {
+        log("[CLIENT] " + e.data);
+        if (!pyodideReady) return;
+        try {
+            const res = await pyodide.runPythonAsync(e.data);
+            if (res !== undefined) log(String(res));
+        } catch(err){ log("Error: "+err); }
+        if (dataChannel.readyState === "open") dataChannel.send(`HOST UPDATE: ${e.data}`);
     };
+    pc.onicecandidate = e => { if (e.candidate) log("ICE Candidate: "+JSON.stringify(e.candidate)); };
 
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
 
     const encoded = btoa(JSON.stringify(offer));
     log("Host ready.");
-    await printLines(["=== BASE64 GAME ID ===", encoded, "====================="], {highlight:true});
+    log("=== BASE64 GAME ID ===", {highlight:true});
+    log(encoded, {highlight:true});
+    log("=====================", {highlight:true});
 
-    showHelp(term, true);
+    showHelp(term, true); // DM sees full commands
 }
 
 // ===== JOIN GAME =====
 async function joinGame() {
+    if (!pyodideReady) return log("Engine not ready.");
     await enterTerminalMode();
     clearTerminal(term);
 
@@ -167,38 +221,49 @@ async function joinGame() {
     log("Connecting to host...");
 
     const ascii = await getASCII();
-    if (ascii) await printLines(ascii.split("\n"), {highlight:true});
+    if (ascii) { log(ascii, {highlight:true}); scaleASCII(); }
 
     const offer = JSON.parse(atob(gameId));
     pc = new RTCPeerConnection();
-
     pc.ondatachannel = ev => {
         dataChannel = ev.channel;
         dataChannel.onmessage = e => log("[HOST] " + e.data);
     };
-
-    pc.onicecandidate = e => {
-        if (e.candidate) log("ICE Candidate: " + JSON.stringify(e.candidate));
-    };
+    pc.onicecandidate = e => { if (e.candidate) log("ICE Candidate: "+JSON.stringify(e.candidate)); };
 
     await pc.setRemoteDescription(offer);
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
 
     log("Connected to host.");
-    showHelp(term, false);
+    showHelp(term, false); // player sees player commands
+}
+
+// ===== AUTOMATED COMBAT TURN =====
+async function advanceTurn() {
+    if (!pyodideReady) return;
+    try {
+        const next = await pyodide.runPythonAsync("combat.next_turn()");
+        log("=== Next Turn: " + next + " ===", {highlight:true});
+        if (dataChannel?.readyState === "open") dataChannel.send(`/turn ${next}`);
+    } catch(err){ log("Error advancing turn: " + err); }
+}
+
+// ===== /TUT COMMAND =====
+async function runTutorial(isDM=false) {
+    if (!pyodideReady) return;
+    const tutText = await pyodide.runPythonAsync(`tut(${isDM})`);
+    log(tutText, {highlight:true});
+    if (dataChannel && dataChannel.readyState === "open" && isDM) {
+        // broadcast player tutorial
+        const playerTut = await pyodide.runPythonAsync("tut(False)");
+        dataChannel.send(playerTut);
+    }
 }
 
 // ===== BUTTONS =====
-document.getElementById("hostBtn").onclick = async () => {
-    if (!pyodideReady) return log("Engine not ready.");
-    startHost();
-};
-
-document.getElementById("joinBtn").onclick = async () => {
-    if (!pyodideReady) return log("Engine not ready.");
-    joinGame();
-};
+document.getElementById("hostBtn").onclick = startHost;
+document.getElementById("joinBtn").onclick = joinGame;
 
 // ===== CLI INPUT =====
 cmdInput.addEventListener("keydown", async e => {
@@ -210,21 +275,23 @@ cmdInput.addEventListener("keydown", async e => {
 
     if (pyodideReady) {
         try {
+            // Special commands
+            if(cmd.startsWith("/tut")) { 
+                await runTutorial(true); 
+                return;
+            }
             const res = await pyodide.runPythonAsync(cmd);
-            if (res !== undefined) log(String(res));
-        } catch (err) {
-            log("Error: " + err);
-        }
+            if (res!==undefined) log(String(res));
+        } catch(err){ log("Error: "+err); }
     }
 
     if (dataChannel?.readyState === "open") dataChannel.send(cmd);
 });
 
-// Always focus input on click anywhere
+// Focus CLI input on click
 termContainer.addEventListener("click", () => cmdInput.focus());
-
-// Prevent text selection and dragging
 termContainer.addEventListener("mousedown", e => e.preventDefault());
 </script>
+
 </body>
 </html>
