@@ -1,178 +1,63 @@
-<!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4685900264494987"
-        crossorigin="anonymous"></script>
-    <title>My Social Hub</title>
+    <title>My Web Hub</title>
+    <script async src="https//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?
+  client="ca-pub-4685900264494987"
+    crossorigin="anonymous"></script>
+       <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png">
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            background-color: #121212;
-            color: white;
+            padding: 50px;
+            background-color: #121212; /* Dark mode background */
+            color: white; /* White text */
             margin: 0;
-            padding: 0;
         }
         h1 {
-            margin-top: 50px;
+            color: #ffffff;
+            margin-bottom: 20px;
+        }
+        p {
+            color: #cccccc;
+            margin-bottom: 40px;
         }
         .links {
             margin-top: 20px;
         }
-        .link {
-            background: #1f1f1f;
-            color: white;
-            text-decoration: none;
-            padding: 15px;
-            margin: 10px auto;
-            width: 250px;
-            border-radius: 10px;
-            font-size: 18px;
-            transition: 0.3s;
+        .links a {
             display: block;
-            text-align: left;
-        }
-        .link:hover {
-            background: #333;
-        }
-        .discord {
-            background: #5865F2;
-            font-weight: bold;
-            cursor: default;
-            display: inline-block;
-            padding: 10px;
+            margin: 15px auto;
+            font-size: 20px;
+            text-decoration: none;
+            color: white;
+            background-color: #1f1f1f; /* Dark button color */
+            padding: 15px;
             width: 250px;
-            margin: 10px auto;
-            text-align: left;
-            border-radius: 10px;
+            border-radius: 25px; /* Rounded corners */
+            transition: background-color 0.3s, transform 0.2s;
         }
-        .popup-btn {
-            background: #1f1f1f;
-            color: white;
-            padding: 15px 20px;
-            border: none;
-            border-radius: 10px;
-            font-size: 18px;
-            cursor: pointer;
-            margin-top: 20px;
-        }
-        .popup-btn:hover {
-            background: #333;
-        }
-        .popup {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 90%;
-            max-width: 800px;
-            background: #2f2f2f;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-            z-index: 9999;
-        }
-        .popup-content {
-            text-align: left;
-            color: #fff;
-            max-height: 70vh;
-            overflow-y: auto;
-        }
-        .close-btn {
-            background: #ff4d4d;
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .close-btn:hover {
-            background: #ff1a1a;
-        }
-        .badge-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: start;
-            margin-top: 20px;
-        }
-    </style>
+        .links a:hover {
+            background-color: #333; /* Darker hover effect */
+            transform: scale(1.05); /* Slightly larger on hover */
 </head>
 <body>
-    <h1>My Social Hub</h1>
-    <p>Connect with me across the digital realm:</p>
-
+    <h1>Welcome to My Web Hub</h1>
+    <p>Select a site to visit:</p>
+    
     <div class="links">
-        <p class="link">Insta: <a href="https://www.instagram.com/qu4ckatt4ck/" target="_blank">Qu4ckAtt4ck</a></p>
-        <p class="link">YouTube: <a href="https://www.youtube.com/@Qu4ckAtt4ck" target="_blank">Qu4ckAtt4ck</a></p>
-        <p class="link">X (formerly Twitter): <a href="https://twitter.com/Qu4ckAtt4ck" target="_blank">Qu4ckAtt4ck</a></p>
-        <p class="link">GitHub: <a href="https://github.com/Qu4ckAtt4ck" target="_blank">Qu4ckAtt4ck</a></p>
-        <p class="link" style="text-align: center;"> <a href="mailto:MichaelHogendykII@gmail.com" target="_blank">Email Me</a></p>
+        <a href="site1/index.html">"D&D Terminal"</a>
+        <a href="site2/index.html">Assignment tracker</a>
+        <a href="site3/index.html">Snake</a>
+        <a href="site4/index.html">Social Hub</a>
+        <a href="site5/index.html">Game Hub</a>
     </div>
-
-    <p class="discord">
-        Discord: @qu4ckatt4ck
-    </p>
-
-    <!-- Popup trigger button -->
-    <button class="popup-btn" onclick="openPopup()">About Me</button>
-
-    <!-- Popup window -->
-    <div id="aboutMePopup" class="popup">
-        <div class="popup-content">
-            <h2>About Me</h2>
-            <p>👋 Hi, I’m <b>@Qu4ckAtt4ck</b></p>
-            <ul>
-                <li>👀 Interested in emerging tech, PC building, and programming</li>
-                <li>🌱 Currently learning C++ and Python</li>
-                <li>🎓 I’m a 14-year-old programmer who aspires to go to MIT</li>
-                <li>😄 Pronouns: He/him</li>
-                <li>⚡ Fun fact: If you create a repo named after your username (e.g., exampleuser) with a <code>README.md</code>, it shows up on your profile!</li>
-            </ul>
-
-            <h3>🛠️ Tech Stack</h3>
-            <div class="badge-container">
-                <a href="https://www.python.org/" target="_blank">
-                    <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
-                </a>
-                <a href="https://isocpp.org/" target="_blank">
-                    <img src="https://img.shields.io/badge/C++-00599C?style=for-the-badge&logo=c%2B%2B&logoColor=white" alt="C++">
-                </a>
-                <a href="https://developer.mozilla.org/en-US/docs/Web/HTML" target="_blank">
-                    <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="HTML5">
-                </a>
-                <a href="https://git-scm.com/" target="_blank">
-                    <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white" alt="Git">
-                </a>
-                <a href="https://unity.com/" target="_blank">
-                    <img src="https://img.shields.io/badge/Unity-100000?style=for-the-badge&logo=unity&logoColor=white" alt="Unity">
-                </a>
-                <a href="https://www.linux.org/" target="_blank">
-                    <img src="https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux">
-                </a>
-                <a href="https://www.raspberrypi.com/" target="_blank">
-                    <img src="https://img.shields.io/badge/Raspberry%20Pi-A22846?style=for-the-badge&logo=raspberry-pi&logoColor=white" alt="Raspberry Pi">
-                </a>
-                <a href="https://www.microsoft.com/windows" target="_blank">
-                    <img src="https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows">
-                </a>
-            </div>
-
-            <button class="close-btn" onclick="closePopup()">Close</button>
-        </div>
-    </div>
-
-    <script>
-        function openPopup() {
-            document.getElementById("aboutMePopup").style.display = "block";
-        }
-
-        function closePopup() {
-            document.getElementById("aboutMePopup").style.display = "none";
-        }
-    </script>
 </body>
 </html>
