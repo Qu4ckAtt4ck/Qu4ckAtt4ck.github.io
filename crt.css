@@ -1,0 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+body {
+    background: #1e1e1e; /* dark grey landing page */
+    color: #0f0;
+    font-family: 'VT323', monospace;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+#controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+input#gameId {
+    width: 250px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #0f0;
+    background: #111;
+    color: #0f0;
+    font-family: 'VT323', monospace;
+    font-size: 1.2em;
+    text-align: center;
+}
+
+button {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 1px solid #0f0;
+    background: #111;
+    color: #0f0;
+    cursor: pointer;
+    font-family: 'VT323', monospace;
+    font-size: 1.1em;
+}
+
+#terminal-container {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: black;
+    overflow-y: auto;
+    padding: 20px;
+    display: none; /* hidden until hosting/joining */
+}
+
+#terminal {
+    white-space: pre;
+    line-height: 1.2em;
+    text-shadow: 0 0 2px #0f0, 0 0 4px #0f0, 0 0 6px #0f0;
+}
+
+.crt-line {
+    text-shadow: 0 0 2px #0f0, 0 0 4px #0f0, 0 0 6px #0f0;
+    animation: flicker 0.1s infinite alternate;
+}
+
+@keyframes flicker {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+}

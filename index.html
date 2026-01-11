@@ -1,68 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Web Hub</title>
-
-    <!-- Google AdSense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4685900264494987"
-        crossorigin="anonymous"></script>
-
-    <!-- Favicons -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png">
-
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 50px;
-            background-color: #121212; /* Dark mode background */
-            color: white; /* White text */
-            margin: 0;
-        }
-        h1 {
-            color: #ffffff;
-            margin-bottom: 20px;
-        }
-        p {
-            color: #cccccc;
-            margin-bottom: 40px;
-        }
-        .links {
-            margin-top: 20px;
-        }
-        .links a {
-            display: block;
-            margin: 15px auto;
-            font-size: 20px;
-            text-decoration: none;
-            color: white;
-            background-color: #1f1f1f; /* Dark button color */
-            padding: 15px;
-            width: 250px;
-            border-radius: 25px; /* Rounded corners */
-            transition: background-color 0.3s, transform 0.2s;
-        }
-        .links a:hover {
-            background-color: #333; /* Darker hover effect */
-            transform: scale(1.05); /* Slightly larger on hover */
-        }
-    </style>
+<meta charset="UTF-8">
+<title>DND Full Online</title>
+<link rel="stylesheet" href="frontend/crt.css">
 </head>
 <body>
-    <h1>Welcome to My Web Hub</h1>
-    <p>Select a site to visit:</p>
-    
-    <div class="links">
-        <a href="site1/index.html">Chicken Clicker</a>
-        <a href="site2/index.html">Assignment Tracker</a>
-        <a href="site3/index.html">Snake</a>
-        <a href="site4/index.html">Social Hub</a>
-        <a href="site5/index.html">Game Hub</a>
-    </div>
+
+<div id="terminal-container">
+    <div id="terminal"></div>
+</div>
+
+<div id="controls">
+    <input id="gameId" placeholder="Enter game ID">
+    <button id="hostBtn">Host Game</button>
+    <button id="joinBtn">Join Game</button>
+</div>
+
+<script type="module">
+// ===== IMPORT HELPERS =====
+import { logTerminal, clearTerminal, showHelp } from "frontend/cli_helper.js";
+
+const termContainer = document.getElementById("terminal-container");
+const term = document.getElementById("terminal");
+function log(msg, options={}) { logTerminal(term, msg, options); }
+
+// ===== PYODIDE =====
+let pyodideReady=false;
+async function initPyodide(){
+    log("Loading Pyodide...");
+    window.pyodide = await loadPyodide({indexURL:"https://cdn.jsdelivr.net/pyodide/v0.24.1/full/"});
+    pyodideReady=true;
+    log("Pyodide ready.");
+
+    await pyodide.runPythonAsync(`
+import sys
+sys.path.insert(0,"dnd_engine")
+import engine
+`);
+    log("Engine loaded.\n");
+}
+
+// Load Pyodide dynamically
+const pyScript = document.createElement("script");
+pyScript.src = "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js";
+pyScript.onload = initPyodide;
+document.body.appendChild(pyScript);
+
+// ===== WEBRTC BASE64 =====
+let pc, dataChannel, isHost=false;
+
+document.getElementById("hostBtn").onclick = async ()=>{
+    if(!pyodideReady) return log("Pyodide not ready");
+    isHost=true;
+    termContainer.style.display="block";
+    clearTerminal(term);
+    log("Hosting game...", {highlight:true});
+    pc = new RTCPeerConnection();
+    dataChannel = pc.createDataChannel("dnd");
+    dataChannel.onmessage = e => log("[CLIENT] "+e.data);
+    pc.onicecandidate = e => { if(e.candidate) log("ICE Candidate: "+JSON.stringify(e.candidate)); };
+
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    log("=== HOST GAME ID (Base64) ===", {highlight:true});
+    log(btoa(JSON.stringify(offer)), {highlight:true});
+    log("============================", {highlight:true});
+    showHelp(term, true);
+};
+
+document.getElementById("joinBtn").onclick = async ()=>{
+    if(!pyodideReady) return log("Pyodide not ready");
+    const gameId = document.getElementById("gameId").value.trim();
+    if(!gameId) return log("Enter a game ID first!");
+    termContainer.style.display="block";
+    clearTerminal(term);
+    log("Joining game...", {highlight:true});
+
+    const offer = JSON.parse(atob(gameId));
+    pc = new RTCPeerConnection();
+    pc.ondatachannel = ev => {
+        dataChannel = ev.channel;
+        dataChannel.onmessage = e => log("[HOST] "+e.data);
+    };
+    pc.onicecandidate = e => { if(e.candidate) log("ICE Candidate: "+JSON.stringify(e.candidate)); };
+
+    await pc.setRemoteDescription(offer);
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    log("=== JOINED GAME ===", {highlight:true});
+    showHelp(term, false);
+};
+
+// ===== CLI =====
+document.querySelector("input#gameId").addEventListener("keydown", async (e)=>{
+    if(e.key==="Enter") e.target.blur(); // prevent submitting while typing game ID
+});
+
+const cmdInput = document.createElement("input");
+cmdInput.placeholder="Type command here...";
+termContainer.appendChild(cmdInput);
+
+cmdInput.addEventListener("keydown", async (e)=>{
+    if(e.key!=="Enter") return;
+    const cmd = e.target.value.trim();
+    e.target.value="";
+    log("> "+cmd);
+    if(pyodideReady){
+        try{
+            let res = await pyodide.runPythonAsync(cmd);
+            if(res!==undefined) log(String(res));
+        } catch(err){ log("Error: "+err); }
+    }
+    if(dataChannel && dataChannel.readyState==="open") dataChannel.send(cmd);
+});
+
+// Focus CLI input on click
+termContainer.addEventListener("click", ()=>cmdInput.focus());
+
+</script>
 </body>
 </html>
