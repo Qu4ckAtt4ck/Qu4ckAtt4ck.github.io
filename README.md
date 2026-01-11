@@ -4,8 +4,8 @@ Welcome to **My Web Hub** — a central place for my web projects, where I build
 
 ## Subsites & Projects
 
-- **Placeable Uncooked Chicken Clicker**  
-  A clicker game where chickens rule. Simple, fun, and dangerously addictive. (bugged)
+- **D&D Terminal**  
+  D&D in an old school terminal
 
 - **Assignment Tracker**  
  Tracks assignments needed to complete in a given timeframe for the core four classes to be on track.
