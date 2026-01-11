@@ -7,7 +7,7 @@
 </head>
 <body>
 
-<div id="terminal-container">
+<div id="terminal-container" style="display:none;">
     <pre id="terminal"></pre>
 </div>
 
@@ -24,38 +24,52 @@ import { logTerminal, clearTerminal, showHelp, showTutorial } from "./frontend/c
 const termContainer = document.getElementById("terminal-container");
 const term = document.getElementById("terminal");
 
-function log(msg, options={}) { logTerminal(term, msg, options); }
+function log(msg, options={}) {
+    logTerminal(term, msg, options);
+    term.scrollTop = term.scrollHeight;
+}
 function clear() { clearTerminal(term); }
 
 // ===================== PYODIDE =====================
 let pyodideReady = false;
+let pyodide;
 
 async function initPyodide(){
-    log("Loading Pyodide...");
-    window.pyodide = await loadPyodide({indexURL:"https://cdn.jsdelivr.net/pyodide/v0.24.1/full/"});
-    pyodideReady = true;
-    log("Pyodide ready.\n");
+    try {
+        log("Loading Pyodide...");
+        pyodide = await loadPyodide({indexURL:"https://cdn.jsdelivr.net/pyodide/v0.24.1/full/"});
+        pyodideReady = true;
+        log("Pyodide ready.\n");
 
-    await pyodide.runPythonAsync(`
+        await pyodide.runPythonAsync(`
 import sys
 sys.path.insert(0,"dnd_engine")
 import engine
 `);
-    log("Engine loaded.\n");
+        log("Engine loaded.\n");
 
-    const asciiResponse = await fetch("frontend/ascii.txt");
-    const asciiArt = await asciiResponse.text();
-    log(asciiArt, {highlight:true});
-    scaleAscii();
+        const asciiResponse = await fetch("frontend/ascii.txt");
+        const asciiArt = await asciiResponse.text();
+        log(asciiArt, {highlight:true});
+        scaleAscii();
+    } catch(err){
+        log("Pyodide failed: "+err);
+    }
 }
 
-const pyScript = document.createElement("script");
-pyScript.src = "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js";
-pyScript.onload = initPyodide;
-document.body.appendChild(pyScript);
+import("https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.mjs")
+    .then(() => initPyodide());
 
 // ===================== WEBRTC =====================
 let pc, dataChannel, isHost = false;
+let iceCandidates = [];
+
+function setupPeerConnection(){
+    pc = new RTCPeerConnection();
+    pc.onicecandidate = e => { 
+        if(e.candidate) iceCandidates.push(e.candidate); 
+    };
+}
 
 document.getElementById("hostBtn").onclick = async () => {
     if(!pyodideReady) return log("Pyodide not ready");
@@ -63,11 +77,11 @@ document.getElementById("hostBtn").onclick = async () => {
     termContainer.style.display = "block";
     clear();
     log("Hosting game...\n", {highlight:true});
+    document.getElementById("controls").style.display="none";
 
-    pc = new RTCPeerConnection();
+    setupPeerConnection();
     dataChannel = pc.createDataChannel("dnd");
     dataChannel.onmessage = e => handleMessage(e.data);
-    pc.onicecandidate = e => { if(e.candidate) log("ICE Candidate: "+JSON.stringify(e.candidate)); };
 
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
@@ -86,34 +100,31 @@ document.getElementById("joinBtn").onclick = async () => {
     termContainer.style.display = "block";
     clear();
     log("Joining game...\n", {highlight:true});
+    document.getElementById("controls").style.display="none";
 
     const offer = JSON.parse(atob(gameIdInput));
-    pc = new RTCPeerConnection();
+    setupPeerConnection();
     pc.ondatachannel = ev => {
         dataChannel = ev.channel;
         dataChannel.onmessage = e => handleMessage(e.data);
     };
-    pc.onicecandidate = e => { if(e.candidate) log("ICE Candidate: "+JSON.stringify(e.candidate)); };
 
     await pc.setRemoteDescription(offer);
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
 
-    log("=== JOINED GAME ===\n", {highlight:true});
+    const answerId = btoa(JSON.stringify(answer));
+    log("=== JOINED GAME ===\nBase64 Answer ID (send to host):\n"+answerId, {highlight:true});
     showHelp(term, false);
 };
 
 // ===================== TERMINAL INPUT =====================
 const cmdInput = document.createElement("input");
 cmdInput.placeholder = "Type command here...";
-cmdInput.style.width = "90%";
-cmdInput.style.background = "#111";
-cmdInput.style.color = "#0f0";
-cmdInput.style.border = "1px solid #0f0";
-cmdInput.style.borderRadius = "8px";
-cmdInput.style.fontFamily = "'VT323', monospace";
-cmdInput.style.fontSize = "1.1em";
-cmdInput.style.marginTop = "10px";
+Object.assign(cmdInput.style,{
+    width:"90%", background:"#111", color:"#0f0", border:"1px solid #0f0",
+    borderRadius:"8px", fontFamily:"'VT323', monospace", fontSize:"1.1em", marginTop:"10px"
+});
 termContainer.appendChild(cmdInput);
 cmdInput.focus();
 
@@ -131,6 +142,110 @@ function handleMessage(msg){
     log("[REMOTE] "+msg);
 }
 
+// ===================== CHARACTER CREATION =====================
+async function createCharFlow(charName){
+    if(!pyodideReady) return log("Pyodide not ready");
+
+    function getInput(promptText){
+        return new Promise(resolve => {
+            log(promptText, {highlight:true});
+            cmdInput.disabled = false;
+
+            const handler = e => {
+                if(e.key !== "Enter") return;
+                const val = e.target.value.trim();
+                if(!val) return;
+                e.target.value = "";
+                cmdInput.removeEventListener("keydown", handler);
+                cmdInput.disabled = true;
+                resolve(val);
+            };
+            cmdInput.addEventListener("keydown", handler);
+        });
+    }
+
+    try{
+        const race = await getInput("Enter Race (SRD/homebrew):");
+
+        let classesList;
+        while(true){
+            const classesInput = await getInput("Enter Classes (comma-separated):");
+            classesList = classesInput.split(",").map(c=>c.trim()).filter(Boolean);
+            if(classesList.length > 0) break;
+            log("Invalid input. Must enter at least one class.");
+        }
+
+        const levelsList = [];
+        for(const cls of classesList){
+            while(true){
+                const lvlInput = await getInput(`Enter level for ${cls}:`);
+                const lvl = parseInt(lvlInput);
+                if(!isNaN(lvl) && lvl >=1){
+                    levelsList.push(lvl);
+                    break;
+                }
+                log("Invalid level. Must be integer >=1");
+            }
+        }
+
+        const abilityChoice = (await getInput("Assign abilities: roll or manual?")).toLowerCase();
+        const abilities = {};
+        if(abilityChoice==="roll"){
+            await pyodide.runPythonAsync(`
+import random
+abilities = {s:sum(sorted([random.randint(1,6) for _ in range(4)])[1:]) for s in ["STR","DEX","CON","INT","WIS","CHA"]}
+`);
+            const pyAbilities = await pyodide.globals.get("abilities");
+            Object.assign(abilities, pyAbilities.toJs());
+        } else {
+            for(const stat of ["STR","DEX","CON","INT","WIS","CHA"]){
+                while(true){
+                    const val = parseInt(await getInput(`Enter value for ${stat}:`));
+                    if(!isNaN(val)){
+                        abilities[stat] = val;
+                        break;
+                    }
+                    log("Must enter integer.");
+                }
+            }
+        }
+
+        const pyCmd = `
+import json, base64
+from engine import Character, get_race, get_class
+
+c = Character("${charName}", get_race("${race}"), "${classesList[0]}")
+c.classes = dict(zip(${JSON.stringify(classesList)}, ${JSON.stringify(levelsList)}))
+c.level = sum(${JSON.stringify(levelsList)})
+c.abilities = ${JSON.stringify(abilities)}
+c.hit_dice = [c.get_class(cls).get("hit_die",8) for cls in ${JSON.stringify(classesList)} for _ in range(${JSON.stringify(levelsList)}[${JSON.stringify(classesList)}.index(cls)])]
+c.spell_slots = {}
+base64_str = base64.b64encode(json.dumps(c.__dict__).encode()).decode()
+base64_str
+`;
+        const b64 = await pyodide.runPythonAsync(pyCmd);
+        log("Character created! Copy this Base64 string to load later:\n"+b64, {highlight:true});
+
+    } catch(err){ log("Error during character creation: "+err); }
+}
+
+// ===================== LOAD CHARACTER =====================
+async function loadChar(b64){
+    if(!pyodideReady) return log("Pyodide not ready");
+    try{
+        const pyCmd = `
+import json, base64
+data=json.loads(base64.b64decode("${b64}").decode())
+data
+`;
+        const loaded = await pyodide.runPythonAsync(pyCmd);
+        log("--- Character Loaded ---", {highlight:true});
+        for(const [k,v] of Object.entries(loaded)){
+            log(`${k}: ${typeof v === "object" ? JSON.stringify(v) : v}`);
+        }
+    } catch(err){ log("Error loading character: "+err); }
+}
+
 // ===================== COMMAND HANDLER =====================
 async function handleCommand(cmd){
     if(!pyodideReady) return log("Pyodide not ready");
@@ -144,109 +259,28 @@ async function handleCommand(cmd){
             const parts = cmd.split(" ");
             const charName = parts[1];
             if(!charName) return log("Usage: /create_char CHAR_NAME");
+            await createCharFlow(charName);
 
-            const pyCmd = `
-import json, base64
-from js import prompt
-
-name="${charName}"
-
-# --- RACE ---
-while True:
-    race = prompt("Enter Race (SRD/homebrew):")
-    try:
-        r_obj = engine.get_race(race)
-        break
-    except:
-        print("Invalid race. Try again.")
-
-# --- CLASSES ---
-while True:
-    classes_input = prompt("Enter Classes (comma-separated for multiclass):")
-    classes_list = [c.strip() for c in classes_input.split(",") if c.strip()]
-    try:
-        class_objs = [engine.get_class(c) for c in classes_list]
-        break
-    except:
-        print("Invalid class name(s). Try again.")
-
-# --- LEVELS ---
-levels_list = []
-for c in classes_list:
-    while True:
-        lvl = prompt(f"Enter level for {c}:")
-        try:
-            lvl = int(lvl)
-            if lvl < 1: raise ValueError()
-            levels_list.append(lvl)
-            break
-        except:
-            print("Invalid level. Must be integer >= 1.")
-
-# --- CREATE CHARACTER ---
-c = engine.Character(name, race, classes_list[0])
-c.classes = dict(zip(classes_list, levels_list))
-c.level = sum(levels_list)
-
-# --- ABILITIES ---
-assign_choice = prompt("Roll or manual assign abilities? (roll/manual)").lower()
-if assign_choice == "roll":
-    import random
-    c.abilities = {s:sum(sorted([random.randint(1,6) for _ in range(4)])[1:]) for s in ["STR","DEX","CON","INT","WIS","CHA"]}
-else:
-    for s in ["STR","DEX","CON","INT","WIS","CHA"]:
-        while True:
-            v = prompt(f"Enter value for {s}:")
-            try:
-                v=int(v)
-                c.abilities[s]=v
-                break
-            except:
-                print("Must be integer.")
-
-# --- HIT DICE & SPELL SLOTS ---
-c.hit_dice = [c.get_class(cls).get("hit_die",8) for cls in classes_list for _ in range(levels_list[classes_list.index(cls)])]
-c.spell_slots = {}
-
-# --- SAVE TO BASE64 ---
-b64 = base64.b64encode(json.dumps(c.__dict__).encode()).decode()
-b64
-`;
-            const b64 = await pyodide.runPythonAsync(pyCmd);
-            log("Character created! Base64 save string below (copy/paste to store):\n"+b64);
-
-        } else if(cmd.startsWith("/save_char")){
-            const charName = cmd.split(" ")[1];
-            if(!charName) return log("Usage: /save_char CHAR_NAME");
-            log("Saving character not fully implemented; use /create_char to generate Base64 save.");
         } else if(cmd.startsWith("/load_char")){
             const b64 = cmd.split(" ")[1];
             if(!b64) return log("Usage: /load_char BASE64_STRING");
-            const pyCmd = `
-import json, base64
-data=json.loads(base64.b64decode("${b64}").decode())
-data
-`;
-            const loaded = await pyodide.runPythonAsync(pyCmd);
-            log("Character loaded:\n"+JSON.stringify(loaded));
+            await loadChar(b64);
+
         } else {
             let res = await pyodide.runPythonAsync(cmd);
             if(res !== undefined) log(String(res));
         }
 
-        if(dataChannel && dataChannel.readyState==="open"){
-            dataChannel.send(cmd);
-        }
+        if(dataChannel && dataChannel.readyState==="open") dataChannel.send(cmd);
+
     } catch(err){ log("Error: "+err); }
 }
 
 // ===================== ASCII SCALING =====================
 window.addEventListener("resize", scaleAscii);
-
 function scaleAscii(){
-    const pre = term;
-    if(!pre.textContent) return;
-    pre.style.fontSize = Math.min(window.innerWidth/150, window.innerHeight/75) + "px";
+    if(!term.textContent) return;
+    term.style.fontSize = Math.min(window.innerWidth/150, window.innerHeight/75) + "px";
 }
 </script>
 </body>
