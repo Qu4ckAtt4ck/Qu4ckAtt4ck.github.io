@@ -9,7 +9,12 @@
 
 <!-- TERMINAL -->
 <div id="terminal-container">
-    <div id="terminal"></div>
+    <div id="cmd-container">
+        <div id="terminal-wrapper">
+            <div id="terminal"></div>
+        </div>
+        <input id="cli-input" placeholder=">">
+    </div>
 </div>
 
 <!-- LANDING PAGE -->
@@ -25,6 +30,8 @@ import { logTerminal, clearTerminal, showHelp } from "frontend/cli_helper.js";
 const termContainer = document.getElementById("terminal-container");
 const term = document.getElementById("terminal");
 const controls = document.getElementById("controls");
+const wrapper = document.getElementById("terminal-wrapper");
+const cmdInput = document.getElementById("cli-input");
 
 function log(msg, options={}) { logTerminal(term, msg, options); }
 
@@ -40,18 +47,23 @@ async function getASCII() {
     }
 }
 
-// ===== FULLSCREEN =====
-async function lockFullscreen() {
-    if (!document.fullscreenElement) {
-        try { await document.documentElement.requestFullscreen(); } catch {}
-    }
-}
-
-// ===== ENTER TERMINAL MODE =====
+// ===== LOCKED FULLSCREEN CRT MODE =====
 async function enterTerminalMode() {
     controls.style.display = "none";
     termContainer.style.display = "flex";
-    await lockFullscreen();
+
+    // Lock scrolling
+    document.body.style.overflow = "hidden";
+
+    // Prevent text selection
+    document.body.style.userSelect = "none";
+
+    // Request fullscreen
+    if (!document.fullscreenElement) {
+        try { await document.documentElement.requestFullscreen(); } catch {}
+    }
+
+    // Auto-focus CLI input
     cmdInput.focus();
 }
 
@@ -78,12 +90,42 @@ document.body.appendChild(pyScript);
 // ===== WEBRTC =====
 let pc, dataChannel;
 
-// ===== CRT-STYLE LINE PRINTING =====
+// ===== CRT-STYLE PRINTING =====
 async function printLines(lines, options={}) {
     for (const line of lines) {
         log(line, options);
         await new Promise(r => setTimeout(r, Math.random() * 50 + 10));
     }
+    scaleASCII();
+}
+
+// ===== SCALE ASCII PROPORTIONALLY + VERTICAL CENTER =====
+function scaleASCII() {
+    const asciiText = term.textContent.split("\n");
+    const originalWidth = 145;
+    const originalHeight = asciiText.length;
+
+    function applyScale() {
+        const vw = window.innerWidth - 40;
+        const vh = window.innerHeight - 120; // input + padding
+        const fontWidth = 0.6;
+        const fontHeight = 1;
+
+        const scaleX = vw / (originalWidth * fontWidth * 16);
+        const scaleY = vh / (originalHeight * fontHeight * 16);
+        const scale = Math.min(scaleX, scaleY);
+
+        wrapper.style.transform = `scale(${scale})`;
+
+        // vertical centering
+        const wrapperHeight = originalHeight * 16 * scale;
+        const containerHeight = window.innerHeight - 40;
+        const topMargin = Math.max((containerHeight - wrapperHeight - 40)/2, 0);
+        wrapper.style.marginTop = topMargin + "px";
+    }
+
+    window.addEventListener("resize", applyScale);
+    applyScale();
 }
 
 // ===== HOST GAME =====
@@ -159,19 +201,6 @@ document.getElementById("joinBtn").onclick = async () => {
 };
 
 // ===== CLI INPUT =====
-const cmdInput = document.createElement("input");
-cmdInput.placeholder = ">";
-cmdInput.style.background = "black";
-cmdInput.style.color = "#0f0";
-cmdInput.style.border = "none";
-cmdInput.style.outline = "none";
-cmdInput.style.fontFamily = "'VT323', monospace";
-cmdInput.style.fontSize = "1.2em";
-cmdInput.style.width = "100%";
-
-termContainer.appendChild(cmdInput);
-cmdInput.focus();
-
 cmdInput.addEventListener("keydown", async e => {
     if (e.key !== "Enter") return;
     const cmd = cmdInput.value.trim();
@@ -191,7 +220,11 @@ cmdInput.addEventListener("keydown", async e => {
     if (dataChannel?.readyState === "open") dataChannel.send(cmd);
 });
 
+// Always focus input on click anywhere
 termContainer.addEventListener("click", () => cmdInput.focus());
+
+// Prevent text selection and dragging
+termContainer.addEventListener("mousedown", e => e.preventDefault());
 </script>
 </body>
 </html>
