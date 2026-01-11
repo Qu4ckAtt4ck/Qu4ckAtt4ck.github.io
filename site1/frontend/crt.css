@@ -1,99 +1,93 @@
-/* ===========================
-   FONT IMPORT
-   =========================== */
 @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
-/* ===========================
-   BASE BODY
-   =========================== */
-html, body {
+body {
     margin: 0;
     padding: 0;
-    height: 100%;
-    font-family: 'VT323', monospace;
+    background: #1e1e1e; /* dark grey landing page */
     color: #0f0;
-}
-
-/* Landing page layout */
-body {
+    font-family: 'VT323', monospace;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color: #1e1e1e; /* dark grey for landing */
+    height: 100vh;
+    overflow: hidden;
 }
 
-/* ===========================
-   CONTROLS (Landing page)
-   =========================== */
+/* Landing page controls */
 #controls {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 15px;
+    gap: 10px;
 }
 
-/* Input box */
-#gameId {
-    width: 250px;
-    padding: 12px;
-    border-radius: 10px;
-    border: 1px solid #0f0;
-    background-color: #111;
-    color: #0f0;
+#controls input,
+#controls button {
+    font-family: 'VT323', monospace;
     font-size: 1.2em;
-    text-align: center;
-}
-
-/* Buttons */
-#hostBtn,
-#joinBtn {
-    width: 250px;
-    padding: 12px;
-    border-radius: 10px;
+    padding: 10px 20px;
+    border-radius: 8px;
     border: 1px solid #0f0;
-    background-color: #111;
+    background: #111;
     color: #0f0;
-    font-size: 1.1em;
+    width: 250px;
+    text-align: center;
     cursor: pointer;
-    transition: background-color 0.2s, transform 0.1s;
 }
 
-#hostBtn:hover,
-#joinBtn:hover {
-    background-color: #333;
-    transform: scale(1.05);
-}
-
-/* ===========================
-   TERMINAL (Hidden init)
-   =========================== */
+/* Terminal fullscreen */
 #terminal-container {
     position: fixed;
-    inset: 0;
-    background-color: black;
-    overflow-y: auto;
-    padding: 20px;
-    display: none; /* shown after host/join */
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: black;
+    display: none;
+    justify-content: center; /* horizontal centering */
+    align-items: center;     /* vertical centering */
+    overflow: hidden;
+}
+
+/* Container for ASCII + CLI input */
+#cmd-container {
+    display: flex;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
-/* Terminal text */
-#terminal {
-    white-space: pre-wrap;
-    line-height: 1.2em;
-    text-shadow: 0 0 2px #0f0, 0 0 4px #0f0, 0 0 6px #0f0;
+/* ASCII wrapper scales proportionally */
+#terminal-wrapper {
+    display: inline-block;
+    transform-origin: top left;
+    white-space: pre;
+    line-height: 1em;
+    font-family: 'VT323', monospace;
+    color: #0f0;
 }
 
-/* CRT flicker for each line */
-.crt-line {
+/* CRT glow & flicker */
+#terminal div {
     text-shadow: 0 0 2px #0f0, 0 0 4px #0f0, 0 0 6px #0f0;
     animation: flicker 0.1s infinite alternate;
 }
 
-/* Flicker animation */
 @keyframes flicker {
-    0%   { opacity: 1; }
-    50%  { opacity: 0.6; }
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
     100% { opacity: 1; }
+}
+
+/* CLI input under ASCII */
+#cli-input {
+    margin-top: 10px;
+    font-family: 'VT323', monospace;
+    font-size: 1.2em;
+    padding: 8px 12px;
+    width: 80%;
+    max-width: 600px;
+    background: black;
+    color: #0f0;
+    border: 1px solid #0f0;
+    border-radius: 5px;
+    outline: none;
 }
