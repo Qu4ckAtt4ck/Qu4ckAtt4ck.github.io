@@ -18,106 +18,162 @@
 </div>
 
 <script type="module">
-// ===== IMPORT HELPERS =====
 import { logTerminal, clearTerminal, showHelp } from "frontend/cli_helper.js";
 
 const termContainer = document.getElementById("terminal-container");
 const term = document.getElementById("terminal");
+const controls = document.getElementById("controls");
+
 function log(msg, options={}) { logTerminal(term, msg, options); }
 
+// ===== FETCH ASCII =====
+async function getASCII() {
+    try {
+        // Relative path works on username.github.io root
+        const resp = await fetch("frontend/ascii.txt");
+        if (!resp.ok) throw new Error("ASCII file not found");
+        return await resp.text();
+    } catch (err) {
+        log("Failed to load ASCII: " + err);
+        return "";
+    }
+}
+
+// ===== FULLSCREEN LOCK =====
+async function lockFullscreen() {
+    if (!document.fullscreenElement) {
+        try { await document.documentElement.requestFullscreen(); } catch {}
+    }
+}
+
+// ===== TERMINAL MODE =====
+function enterTerminalMode() {
+    controls.style.display = "none";
+    termContainer.classList.add("active");
+    lockFullscreen();
+    termContainer.focus();
+}
+
 // ===== PYODIDE =====
-let pyodideReady=false;
-async function initPyodide(){
-    log("Loading Pyodide...");
-    window.pyodide = await loadPyodide({indexURL:"https://cdn.jsdelivr.net/pyodide/v0.24.1/full/"});
-    pyodideReady=true;
-    log("Pyodide ready.");
+let pyodideReady = false;
+async function initPyodide() {
+    log("Starting engine...");
+    window.pyodide = await loadPyodide({
+        indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/"
+    });
+    pyodideReady = true;
 
     await pyodide.runPythonAsync(`
 import sys
 sys.path.insert(0,"dnd_engine")
 import engine
 `);
-    log("Engine loaded.\n");
+    log("Engine started.");
 }
 
-// Load Pyodide dynamically
 const pyScript = document.createElement("script");
 pyScript.src = "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js";
 pyScript.onload = initPyodide;
 document.body.appendChild(pyScript);
 
-// ===== WEBRTC BASE64 =====
-let pc, dataChannel, isHost=false;
+// ===== WEBRTC =====
+let pc, dataChannel;
 
-document.getElementById("hostBtn").onclick = async ()=>{
-    if(!pyodideReady) return log("Pyodide not ready");
-    isHost=true;
-    termContainer.style.display="block";
+async function startHost() {
+    enterTerminalMode();
     clearTerminal(term);
-    log("Hosting game...", {highlight:true});
+
+    log("Booting WebRTC host...");
+
+    const asciiArt = await getASCII();
+    if (asciiArt) log(asciiArt, {highlight:true});
+
     pc = new RTCPeerConnection();
     dataChannel = pc.createDataChannel("dnd");
-    dataChannel.onmessage = e => log("[CLIENT] "+e.data);
-    pc.onicecandidate = e => { if(e.candidate) log("ICE Candidate: "+JSON.stringify(e.candidate)); };
+    dataChannel.onmessage = e => log("[CLIENT] " + e.data);
 
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
-    log("=== HOST GAME ID (Base64) ===", {highlight:true});
-    log(btoa(JSON.stringify(offer)), {highlight:true});
-    log("============================", {highlight:true});
-    showHelp(term, true);
-};
 
-document.getElementById("joinBtn").onclick = async ()=>{
-    if(!pyodideReady) return log("Pyodide not ready");
-    const gameId = document.getElementById("gameId").value.trim();
-    if(!gameId) return log("Enter a game ID first!");
-    termContainer.style.display="block";
+    const encoded = btoa(JSON.stringify(offer));
+    log("Host ready.");
+    log("=== BASE64 GAME ID ===", {highlight:true});
+    log(encoded, {highlight:true});
+    log("=====================", {highlight:true});
+
+    showHelp(term, true);
+}
+
+async function joinGame() {
+    enterTerminalMode();
     clearTerminal(term);
-    log("Joining game...", {highlight:true});
+
+    const gameId = document.getElementById("gameId").value.trim();
+    if (!gameId) return log("Enter a game ID first!");
+
+    log("Joining game...");
+
+    const asciiArt = await getASCII();
+    if (asciiArt) log(asciiArt, {highlight:true});
 
     const offer = JSON.parse(atob(gameId));
     pc = new RTCPeerConnection();
+
     pc.ondatachannel = ev => {
         dataChannel = ev.channel;
-        dataChannel.onmessage = e => log("[HOST] "+e.data);
+        dataChannel.onmessage = e => log("[HOST] " + e.data);
     };
-    pc.onicecandidate = e => { if(e.candidate) log("ICE Candidate: "+JSON.stringify(e.candidate)); };
 
     await pc.setRemoteDescription(offer);
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
-    log("=== JOINED GAME ===", {highlight:true});
+
+    log("Connected.");
     showHelp(term, false);
+}
+
+// ===== BUTTONS =====
+document.getElementById("hostBtn").onclick = async () => {
+    if (!pyodideReady) return log("Engine not ready.");
+    startHost();
 };
 
-// ===== CLI =====
-document.querySelector("input#gameId").addEventListener("keydown", async (e)=>{
-    if(e.key==="Enter") e.target.blur(); // prevent submitting while typing game ID
-});
+document.getElementById("joinBtn").onclick = async () => {
+    if (!pyodideReady) return log("Engine not ready.");
+    joinGame();
+};
 
+// ===== CLI INPUT =====
 const cmdInput = document.createElement("input");
-cmdInput.placeholder="Type command here...";
-termContainer.appendChild(cmdInput);
+cmdInput.placeholder = ">";
+cmdInput.style.background = "black";
+cmdInput.style.color = "#0f0";
+cmdInput.style.border = "none";
+cmdInput.style.outline = "none";
+cmdInput.style.fontFamily = "VT323, monospace";
+cmdInput.style.fontSize = "1.2em";
 
-cmdInput.addEventListener("keydown", async (e)=>{
-    if(e.key!=="Enter") return;
-    const cmd = e.target.value.trim();
-    e.target.value="";
-    log("> "+cmd);
-    if(pyodideReady){
-        try{
-            let res = await pyodide.runPythonAsync(cmd);
-            if(res!==undefined) log(String(res));
-        } catch(err){ log("Error: "+err); }
+termContainer.appendChild(cmdInput);
+cmdInput.focus();
+
+cmdInput.addEventListener("keydown", async e => {
+    if (e.key !== "Enter") return;
+    const cmd = cmdInput.value.trim();
+    cmdInput.value = "";
+
+    log("> " + cmd);
+    if (pyodideReady) {
+        try {
+            const res = await pyodide.runPythonAsync(cmd);
+            if (res !== undefined) log(String(res));
+        } catch (err) {
+            log("Error: " + err);
+        }
     }
-    if(dataChannel && dataChannel.readyState==="open") dataChannel.send(cmd);
+    if (dataChannel?.readyState === "open") dataChannel.send(cmd);
 });
 
-// Focus CLI input on click
-termContainer.addEventListener("click", ()=>cmdInput.focus());
-
+termContainer.addEventListener("click", () => cmdInput.focus());
 </script>
 </body>
 </html>
