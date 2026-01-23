@@ -4,9 +4,6 @@ Welcome to **My Web Hub** — a central place for my web projects, where I build
 
 ## Subsites & Projects
 
-- **D&D Terminal**  
-  D&D in an old school terminal
-
 - **Assignment Tracker**  
  Tracks assignments needed to complete in a given timeframe for the core four classes to be on track.
 
@@ -17,7 +14,8 @@ Welcome to **My Web Hub** — a central place for my web projects, where I build
   A simple link tree to organize and navigate through my different projects and resources.
 
 - **Game Hub**
-  As of right now just one game, so not a hub; it's blackjack.
+  	- Blackjack
+  	- Aim Trainer
 
 ## Live Demo
 
