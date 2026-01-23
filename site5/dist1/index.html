@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>3D Aim Trainer – Neon Hemisphere</title>
+<style>
+body { margin: 0; background: black; overflow: hidden; color: white; font-family: Consolas; cursor: none; }
+#score { position: absolute; top: 10px; right: 10px; font-size: 14px; }
+canvas { display: block; }
+#instructions {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    color: white; text-align: center; font-size: 20px;
+}
+</style>
+</head>
+<body>
+<div id="score">Score: 0</div>
+<div id="instructions">Click to play and lock mouse</div>
+<canvas id="gameCanvas"></canvas>
+
+<script>
+let canvas = document.getElementById("gameCanvas");
+let ctx = canvas.getContext("2d");
+
+let score = 0;
+let yaw = 0, pitch = 0;
+const SPHERE_RADIUS = 20;
+const LAT_LINES = 12;
+const LON_LINES = 24;
+const BASE_TARGET_SIZE = 8;
+
+// ---------------- Canvas / FOV ----------------
+let WIDTH = window.innerWidth;
+let HEIGHT = window.innerHeight;
+let FOV = Math.min(WIDTH, HEIGHT) / 1.5;
+
+function resizeCanvas() {
+    WIDTH = window.innerWidth;
+    HEIGHT = window.innerHeight;
+    canvas.width = WIDTH;
+    canvas.height = HEIGHT;
+
+    // Keep FOV proportional to smaller dimension
+    FOV = Math.min(WIDTH, HEIGHT) / 1.5;
+}
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
+// ---------------- Pointer Lock + Fullscreen ----------------
+canvas.addEventListener("click", () => {
+    canvas.requestPointerLock();
+    if (canvas.requestFullscreen) canvas.requestFullscreen();
+});
+
+document.addEventListener("pointerlockchange", () => {
+    if (document.pointerLockElement === canvas) {
+        document.getElementById("instructions").style.display = "none";
+        document.addEventListener("mousemove", onMouseMove);
+    } else {
+        document.getElementById("instructions").style.display = "block";
+        document.removeEventListener("mousemove", onMouseMove);
+    }
+});
+
+function onMouseMove(e){
+    const sensitivity = 0.002;
+    yaw += e.movementX * sensitivity;
+    pitch -= e.movementY * sensitivity;
+    pitch = Math.max(-Math.PI/2, Math.min(Math.PI/2, pitch));
+}
+
+// ---------------- 3D Math ----------------
+function spherePoint(theta, phi) {
+    const x = SPHERE_RADIUS * Math.cos(theta) * Math.sin(phi);
+    const y = SPHERE_RADIUS * Math.cos(phi);
+    const z = SPHERE_RADIUS * Math.sin(theta) * Math.sin(phi);
+    return [x, y, z];
+}
+
+function rotate(x, y, z) {
+    const cy = Math.cos(yaw), sy = Math.sin(yaw);
+    let xr = x*cy - z*sy;
+    let zr = x*sy + z*cy;
+    const cp = Math.cos(pitch), sp = Math.sin(pitch);
+    let yr = y*cp - zr*sp;
+    zr = y*sp + zr*cp;
+    return [xr, yr, zr];
+}
+
+function project(x, y, z){
+    if (z <= 0.01) return null;
+    const f = FOV / z;
+    return [x*f + WIDTH/2, -y*f + HEIGHT/2, z];
+}
+
+// ---------------- Target ----------------
+function randomTarget() {
+    const theta = Math.random() * 2 * Math.PI;
+
+    // Keep targets 2 latitude lines from top
+    const maxLatIndex = LAT_LINES - 3; // top 2 lines blocked
+    const latIndex = Math.floor(Math.random() * (maxLatIndex + 1));
+    const phi = latIndex * (Math.PI/2) / LAT_LINES + Math.random() * (Math.PI/2) / LAT_LINES;
+
+    // Random size ±10%
+    const size = BASE_TARGET_SIZE * (0.9 + Math.random() * 0.2);
+    return { pos: spherePoint(theta, phi), size };
+}
+let target = randomTarget();
+
+canvas.addEventListener("click", function(e) {
+    const rp = rotate(...target.pos);
+    const proj = project(...rp);
+    if (!proj) return;
+    const [x, y, z] = proj;
+    const size = target.size * (FOV / z);
+    if (Math.abs(WIDTH/2 - x) < size && Math.abs(HEIGHT/2 - y) < size) {
+        score++;
+        document.getElementById("score").innerText = `Score: ${score}`;
+        target = randomTarget();
+    }
+});
+
+// ---------------- Neon Drawing ----------------
+function drawNeonLine(points, color) {
+    for (let glow=4; glow>=1; glow--){
+        ctx.strokeStyle = color;
+        ctx.lineWidth = glow;
+        ctx.globalAlpha = 0.15 + glow*0.15;
+        ctx.beginPath();
+        ctx.moveTo(points[0], points[1]);
+        for (let i=2;i<points.length;i+=2) ctx.lineTo(points[i], points[i+1]);
+        ctx.stroke();
+    }
+    ctx.globalAlpha = 1.0;
+}
+
+function drawDomeWireframe() {
+    const points = Array(LAT_LINES+1).fill().map(()=>Array(LON_LINES+1));
+    for (let i=0;i<=LAT_LINES;i++){
+        const phi = i * (Math.PI/2) / LAT_LINES;
+        for (let j=0;j<=LON_LINES;j++){
+            const theta = j * 2*Math.PI / LON_LINES;
+            points[i][j] = project(...rotate(...spherePoint(theta, phi)));
+        }
+    }
+
+    const drawlist = [];
+    // Latitude
+    for (let i=1;i<=LAT_LINES;i++){
+        const poly=[];
+        let maxZ=0;
+        for (let j=0;j<=LON_LINES;j++){
+            const pt = points[i][j];
+            if (pt){ poly.push(pt[0], pt[1]); maxZ=Math.max(maxZ, pt[2]); }
+        }
+        if (poly.length) drawlist.push({type:"polyline", points:poly, z:maxZ, color:"#00aaff"});
+    }
+    // Longitude
+    for (let j=0;j<LON_LINES;j++){
+        const poly=[];
+        let maxZ=0;
+        for (let i=1;i<=LAT_LINES;i++){
+            const pt = points[i][j];
+            if (pt){ poly.push(pt[0], pt[1]); maxZ=Math.max(maxZ, pt[2]); }
+        }
+        if (poly.length) drawlist.push({type:"polyline", points:poly, z:maxZ, color:"#00ccff"});
+    }
+    // Target
+    const rp = rotate(...target.pos);
+    const proj = project(...rp);
+    if (proj){
+        const [x, y, z] = proj;
+        const size = target.size * (FOV / z);
+        drawlist.push({type:"target", rect:[x-size, y-size, x+size, y+size], z, color:"red"});
+    }
+
+    drawlist.sort((a,b)=>b.z - a.z);
+    for (const item of drawlist){
+        if (item.type==="polyline") drawNeonLine(item.points, item.color);
+        else {
+            ctx.strokeStyle=item.color;
+            ctx.lineWidth=2;
+            const [x1,y1,x2,y2] = item.rect;
+            ctx.beginPath();
+            ctx.ellipse((x1+x2)/2,(y1+y2)/2,(x2-x1)/2,(y2-y1)/2,0,0,2*Math.PI);
+            ctx.stroke();
+        }
+    }
+}
+
+// ---------------- Main Loop ----------------
+function loop(){
+    ctx.clearRect(0,0,WIDTH,HEIGHT);
+    drawDomeWireframe();
+
+    // Crosshair
+    ctx.strokeStyle="white";
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(WIDTH/2-8, HEIGHT/2);
+    ctx.lineTo(WIDTH/2+8, HEIGHT/2);
+    ctx.moveTo(WIDTH/2, HEIGHT/2-8);
+    ctx.lineTo(WIDTH/2, HEIGHT/2+8);
+    ctx.stroke();
+
+    requestAnimationFrame(loop);
+}
+
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
