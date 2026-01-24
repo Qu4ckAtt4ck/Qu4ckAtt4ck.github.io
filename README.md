@@ -73,7 +73,7 @@ https://qu4ckatt4ck.github.io
 
 1. Clone the repository:
    ```
-   git clone https://github.com/Qu4ckAtt4ck/your-repo.git
+   git clone https://github.com/Qu4ckAtt4ck/qu4ckatt4ck.github.io
    ```
 
 2. Open `index.html` in a browser to access the main hub and navigate between projects.
